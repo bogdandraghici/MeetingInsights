@@ -141,7 +141,7 @@ function buildPacket(){
   });
   const repairs=[];
   Object.keys(REVIEW.repairComments).forEach(key=>{const cm=REVIEW.repairComments[key];
-    if(!nonEmpty(cm))return;const ix=key.indexOf(' ');
+    if(!nonEmpty(cm))return;const ix=key.indexOf('\t');
     repairs.push({bucket:key.slice(0,ix),orig:key.slice(ix+1),comment:cm.trim()});});
   const turns=[];
   Object.keys(REVIEW.turnComments).forEach(i=>{const cm=REVIEW.turnComments[i];
@@ -661,7 +661,7 @@ function repSection(title,arr,bucket){
 
 After the Task-4 JS (`toggleReportNote`), add:
 ```js
-function repairKey(bucket,orig){return bucket+' '+orig;}
+function repairKey(bucket,orig){return bucket+'\t'+orig;}
 function toggleRepairComment(bucket,orig,row){
   let box=row.querySelector(':scope > .cmt');
   if(box){box.querySelector('.cmt-in').focus();return;}
