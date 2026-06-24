@@ -205,6 +205,17 @@
     font:inherit;font-size:12px;padding:4px 10px;cursor:pointer;color:var(--ink-soft)}
   .mast-note-btn:hover{border-color:var(--ink);color:var(--ink)}
   .mast-note-btn.on{background:var(--mark);color:#fff;border-color:var(--mark)}
+  .rep{position:relative} .turn{position:relative}
+  .rowtool{position:absolute;top:4px;right:4px;opacity:0;transition:opacity .12s;
+    background:var(--paper);border:1px solid var(--rule);border-radius:6px;
+    font:inherit;font-size:10.5px;color:var(--ink-soft);padding:3px 7px;cursor:pointer;z-index:2}
+  .rep:hover .rowtool,.turn:hover .rowtool{opacity:1}
+  .rowtool.on{background:var(--mark);color:#fff;border-color:var(--mark);opacity:1}
+  .repsec h2{position:relative}
+  .sectool{margin-left:10px;font:inherit;font-size:11px;border:1px solid var(--rule);
+    border-radius:6px;color:var(--ink-soft);padding:2px 8px;cursor:pointer;text-transform:none;letter-spacing:0}
+  .sectool.on{background:var(--mark);color:#fff;border-color:var(--mark)}
+  .cmt.inline{margin:6px 0 2px}
   .efield[contenteditable="true"]{outline:none;border-bottom:1px dashed var(--blue);
     background:#F7FAFD;border-radius:3px;padding:0 2px}
   .card.editing .quote.efield[contenteditable="true"]{background:#F7FAFD}
@@ -619,6 +630,10 @@ TURNS.forEach((t,i)=>{
   d.id='t-'+i;
   d.innerHTML=`<div class="meta-r"><span class="spk">${SPK[t[0]]}</span><span class="ts mono">${t[1]}</span></div><span class="txt">${t[2]}</span>`;
   if(turnToIdeas[i]) d.addEventListener('click',e=>{ if(e.target.classList.contains('unsure'))return; locate(turnToIdeas[i][0],true); });
+  const btn=document.createElement('button');btn.className='rowtool';btn.textContent='💬';
+  btn.title='Comment on this line';
+  btn.addEventListener('click',e=>{e.stopPropagation();toggleTurnComment(i,d);});
+  d.appendChild(btn);
   scriptEl.appendChild(d);
 });
 
@@ -687,7 +702,18 @@ function repSection(title,arr,bucket){
     const fix=f==='__DROP__'?`<span class="fix drop mono">[dropped — fragments]</span>`:`<span class="fix mono">${f}</span>`;
     return `<div class="rep"><span class="b ${bucket}">${bucket}</span><span class="orig mono">${o}</span><span class="arrow">→</span>${fix}</div>`;
   }).join('');
-  sec.innerHTML=`<h2>${title}</h2>${rows}`;repEl.appendChild(sec);
+  sec.innerHTML=`<h2>${title} <button class="sectool" data-bucket="${bucket}">💬 comment on this section</button></h2>${rows}`;
+  repEl.appendChild(sec);
+  // section comment
+  sec.querySelector('.sectool').addEventListener('click',e=>toggleSectionComment(bucket,sec));
+  // per-row comment tools
+  sec.querySelectorAll('.rep').forEach((row,i)=>{
+    const orig=arr[i][0];
+    const btn=document.createElement('button');btn.className='rowtool';btn.textContent='💬';
+    btn.title='Comment on this repair';
+    btn.addEventListener('click',()=>toggleRepairComment(bucket,orig,row));
+    row.appendChild(btn);
+  });
 }
 repSection('Applied confidently',REPAIRS.auto,'auto');
 repSection('Best guess — confirm',REPAIRS.confirm,'confirm');
@@ -981,6 +1007,30 @@ function toggleReportNote(btn){
     btn.classList.toggle('on',nonEmpty(v));commitReviewChange();},
     'Overall direction: too many cards, wrong framing, merge these two…');
   host.appendChild(box);box.querySelector('.cmt-in').focus();
+}
+function repairKey(bucket,orig){return bucket+'\t'+orig;}
+function toggleRepairComment(bucket,orig,row){
+  let box=row.querySelector(':scope > .cmt');
+  if(box){box.querySelector('.cmt-in').focus();return;}
+  const key=repairKey(bucket,orig);const btn=row.querySelector('.rowtool');
+  box=commentField(REVIEW.repairComments[key]||'',v=>{REVIEW.repairComments[key]=v;
+    btn.classList.toggle('on',nonEmpty(v));commitReviewChange();},'Comment on this repair (e.g. leave as-is, wrong fix)…');
+  box.classList.add('inline');row.appendChild(box);box.querySelector('.cmt-in').focus();
+  btn.classList.toggle('on',nonEmpty(REVIEW.repairComments[key]));
+}
+function toggleSectionComment(bucket,sec){
+  let box=sec.querySelector(':scope > .cmt');const btn=sec.querySelector('.sectool');
+  if(box){box.querySelector('.cmt-in').focus();return;}
+  box=commentField(REVIEW.repairSectionNote,v=>{REVIEW.repairSectionNote=v;
+    btn.classList.toggle('on',nonEmpty(v));commitReviewChange();},'Comment on the repair log as a whole…');
+  box.classList.add('inline');sec.appendChild(box);box.querySelector('.cmt-in').focus();
+}
+function toggleTurnComment(i,turn){
+  let box=turn.querySelector(':scope > .cmt');const btn=turn.querySelector('.rowtool');
+  if(box){box.querySelector('.cmt-in').focus();return;}
+  box=commentField(REVIEW.turnComments[i]||'',v=>{REVIEW.turnComments[i]=v;
+    btn.classList.toggle('on',nonEmpty(v));commitReviewChange();},'Comment on this line (e.g. wrong speaker, misattributed)…');
+  box.classList.add('inline');turn.appendChild(box);box.querySelector('.cmt-in').focus();
 }
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1400);}
 </script>
