@@ -322,7 +322,7 @@ function applyCardState(card,id){
   card.classList.toggle('has-edit',edited);
   card.classList.toggle('has-note',nonEmpty(REVIEW.notes[id]));
   card.classList.toggle('has-cut',!!REVIEW.cuts[id]);
-  const body=card.lastElementChild; // the <div> from cardHTML
+  const body=card.querySelector(':scope > div:not(.cardtools)'); // content div (NOT the .cardtools overlay, which is appended before this runs)
   let flags=card.querySelector('.flags');if(flags)flags.remove();
   const tags=[];
   if(edited)tags.push('<span class="flag edit">edited</span>');
@@ -341,10 +341,12 @@ function attachCardTools(card,it){
 }
 function enterEdit(id){
   const it=IDEAS.find(x=>x.id===id);const card=document.getElementById('c-'+id);
+  // read effective values BEFORE seeding REVIEW.edits — effective() does
+  // Object.assign({},it,REVIEW.edits[id]), so seeding undefined keys first would
+  // splatter undefined over the real IDEA fields.
+  const eff=effective(it);
   const e=REVIEW.edits[id]=Object.assign({title:undefined,detail:undefined,quote:undefined,
     category:undefined,confidence:undefined,topics:undefined},REVIEW.edits[id]||{});
-  // seed from effective values
-  const eff=effective(it);
   ['title','detail','quote','category','confidence'].forEach(k=>{if(e[k]===undefined)e[k]=eff[k];});
   if(e.topics===undefined)e.topics=(eff.topics||[]).slice();
   card.classList.add('editing');
