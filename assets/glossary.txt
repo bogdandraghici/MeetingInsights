@@ -1,0 +1,53 @@
+# FlowX UX-session keyterm list — feed to ASR (keyterm prompting) AND use as repair anchors.
+# One canonical term per line.
+Knowledge Base
+KB
+chunk
+chunk-uri
+entry
+entry-uri
+store
+build
+builds
+branch
+branches
+runtime
+sandbox
+UAT
+workspace
+query
+queries
+metadata
+language
+author
+is_confidential
+topic
+locale
+region
+FlowX Database
+Agent Builder
+custom agent
+REST node
+identify intent
+data transformation
+script
+condition
+parallel
+subflow
+MCP
+MCP Tool
+MCP server
+knowledge base node
+input
+output
+run
+chat testing
+workflow
+node
+Kiwi chatbot
+Mortgage System
+Mortgage Advisor
+breaking change
+replace
+append
+override
