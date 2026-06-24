@@ -640,23 +640,24 @@ TURNS.forEach((t,i)=>{
 const kept=new Set();
 const ideasEl=document.getElementById('ideas');
 function titleOf(id){const x=IDEAS.find(i=>i.id===id);return x?x.title:id;}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function cardHTML(it){
-  const q=it.needs?`<div class="query"><b>?</b><div><b>Needs confirmation — </b>${it.q}</div></div>`:'';
+  const q=it.needs?`<div class=”query”><b>?</b><div><b>Needs confirmation — </b>${it.q}</div></div>`:'';
   const src=TURNS[it.anchors[0]][1];
-  const nturns=it.anchors.length>1?`<span class="srcn"> · ${it.anchors.length} lines</span>`:'';
-  const topics=(it.topics&&it.topics.length)?`<div class="topics">${it.topics.map(t=>`<span class="topic">${t}</span>`).join('')}</div>`:'';
-  const tension=(it.conflictsWith&&it.conflictsWith.length)?`<div class="tension"><span class="tlabel">⚡ In tension with</span>${it.conflictsWith.map(cid=>`<button class="tlink" onclick="event.stopPropagation();locate('${cid}',true)">${titleOf(cid)}</button>`).join('')}</div>`:'';
-  return `<input type="checkbox" class="keep" onchange="toggle('${it.id}',this.checked)" onclick="event.stopPropagation()" aria-label="keep">
+  const nturns=it.anchors.length>1?`<span class=”srcn”> · ${it.anchors.length} lines</span>`:'';
+  const topics=(it.topics&&it.topics.length)?`<div class=”topics”>${it.topics.map(t=>`<span class=”topic”>${esc(t)}</span>`).join('')}</div>`:'';
+  const tension=(it.conflictsWith&&it.conflictsWith.length)?`<div class=”tension”><span class=”tlabel”>⚡ In tension with</span>${it.conflictsWith.map(cid=>`<button class=”tlink” onclick=”event.stopPropagation();locate('${cid}',true)”>${titleOf(cid)}</button>`).join('')}</div>`:'';
+  return `<input type=”checkbox” class=”keep”${kept.has(it.id)?' checked':''} onchange=”toggle('${it.id}',this.checked)” onclick=”event.stopPropagation()” aria-label=”keep”>
     <div>
-      <div class="tagrow">
-        <span class="tag ${it.category}">${it.category.replace('_',' ')}</span>
-        <span class="conf ${it.confidence}"><span class="dot"></span>${it.confidence}</span>
-        <span class="src">⌖ ${src}${nturns}</span>
+      <div class=”tagrow”>
+        <span class=”tag ${it.category}”>${it.category.replace('_',' ')}</span>
+        <span class=”conf ${it.confidence}”><span class=”dot”></span>${it.confidence}</span>
+        <span class=”src”>⌖ ${src}${nturns}</span>
       </div>
-      <h3>${it.title}</h3>
-      <p class="detail">${it.detail}</p>
-      <blockquote class="quote">“${it.quote}”</blockquote>
-      <div class="who">${SPK[it.speaker]==='Facil.'?'Facilitator':SPK[it.speaker]}</div>
+      <h3>${esc(it.title)}</h3>
+      <p class=”detail”>${esc(it.detail)}</p>
+      <blockquote class=”quote”>”${esc(it.quote)}”</blockquote>
+      <div class=”who”>${SPK[it.speaker]==='Facil.'?'Facilitator':SPK[it.speaker]}</div>
       ${q}
       ${tension}
       ${topics}
