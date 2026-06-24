@@ -193,6 +193,9 @@
   .flag.edit{background:#E2EBF1;color:#33536F}
   .flag.note{background:#EDE6D6;color:#7A6320}
   .flag.cut{background:#F6E3DF;color:#9A352A}
+  .card.cut{opacity:.5}
+  .card.cut h3,.card.cut .detail,.card.cut .quote{text-decoration:line-through;
+    text-decoration-color:var(--mark)}
   .efield[contenteditable="true"]{outline:none;border-bottom:1px dashed var(--blue);
     background:#F7FAFD;border-radius:3px;padding:0 2px}
   .card.editing .quote.efield[contenteditable="true"]{background:#F7FAFD}
@@ -865,7 +868,8 @@ function attachCardTools(card,it){
   t.innerHTML=`<button data-t="edit">✎ Edit</button><button data-t="comment">💬 Comment</button><button data-t="cut">✕ Cut</button>`;
   t.querySelectorAll('button').forEach(b=>b.addEventListener('click',e=>{
     e.stopPropagation();const k=b.dataset.t;
-    if(k==='edit')enterEdit(it.id);}));
+    if(k==='edit')enterEdit(it.id);
+    else if(k==='cut')toggleCut(it.id);}));
   card.appendChild(t);
 }
 function enterEdit(id){
@@ -936,6 +940,11 @@ function commitEdit(id){
   if(Object.keys(ch).length===0)delete REVIEW.edits[id];else REVIEW.edits[id]=ch;
   rerenderCard(id);commitReviewChange();
 }
+function toggleCut(id){
+  if(REVIEW.cuts[id])delete REVIEW.cuts[id];else REVIEW.cuts[id]=true;
+  const card=document.getElementById('c-'+id);
+  card.classList.toggle('cut',!!REVIEW.cuts[id]);
+  applyCardState(card,id);commitReviewChange();}
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1400);}
 </script>
 </body>
