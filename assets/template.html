@@ -175,6 +175,32 @@
   .seg{display:inline-flex;border:1px solid var(--rule);border-radius:8px;overflow:hidden}
   .seg button{background:#fff;border:none;padding:7px 14px;font:inherit;font-size:13px;cursor:pointer}
   .seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+  /* card tools + edit mode */
+  .card{position:relative}
+  .cardtools{position:absolute;top:8px;right:8px;display:flex;gap:4px;z-index:3;
+    background:var(--paper);border:1px solid var(--rule);border-radius:8px;padding:3px;
+    opacity:0;transition:opacity .12s;box-shadow:0 2px 8px var(--shadow)}
+  .card:hover .cardtools{opacity:1}
+  .cardtools button{font:inherit;font-size:11px;line-height:1;border:none;background:none;
+    color:var(--ink-soft);border-radius:5px;padding:5px 7px;cursor:pointer;white-space:nowrap}
+  .cardtools button:hover{background:var(--paper-2);color:var(--ink)}
+  .cardtools button.on{background:var(--mark);color:#fff}
+  .card.editing{box-shadow:0 0 0 2px var(--blue),0 1px 0 var(--shadow)}
+  .card.editing .cardtools{opacity:1}
+  .flags{display:flex;gap:6px;margin-top:9px}
+  .flag{font-size:10px;letter-spacing:.07em;text-transform:uppercase;font-weight:700;
+    border-radius:5px;padding:2px 7px}
+  .flag.edit{background:#E2EBF1;color:#33536F}
+  .flag.note{background:#EDE6D6;color:#7A6320}
+  .flag.cut{background:#F6E3DF;color:#9A352A}
+  .efield[contenteditable="true"]{outline:none;border-bottom:1px dashed var(--blue);
+    background:#F7FAFD;border-radius:3px;padding:0 2px}
+  .card.editing .quote.efield[contenteditable="true"]{background:#F7FAFD}
+  .esel{font:inherit;font-size:12px;border:1px solid var(--rule);border-radius:6px;padding:3px 6px;background:#fff}
+  .echip{display:inline-flex;align-items:center;gap:5px}
+  .echip button{border:none;background:none;color:var(--mark);cursor:pointer;font-size:12px;padding:0 2px}
+  .topic-add{font:inherit;font-size:10.5px;border:1px dashed var(--rule);border-radius:999px;
+    padding:2px 8px;width:120px}
   footer{color:var(--ink-soft);font-size:12px;border-top:1px solid var(--rule);padding:18px 0 50px;margin-top:24px}
   .hidden{display:none!important}
   .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:10px 18px;border-radius:999px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:20}
@@ -614,9 +640,9 @@ IDEAS.forEach(it=>{
   card.className='card';card.id='c-'+it.id;card.dataset.cat=it.category;
   card.dataset.topics=(it.topics||[]).join('|');
   card.dataset.conflict=conflictIds.has(it.id)?'1':'';
-  card.innerHTML=cardHTML(it);
-  card.addEventListener('click',()=>locate(it.id,false));
+  card.addEventListener('click',()=>{if(card.classList.contains('editing'))return;locate(it.id,false);});
   ideasEl.appendChild(card);
+  rerenderCard(it.id);
 });
 
 // category + topic filters (ANDed)
@@ -814,6 +840,102 @@ function downloadReview(){const ext=rfmt==='json'?'json':'md';
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);
   a.download='review-'+SESSION.id+'.'+ext;a.click();URL.revokeObjectURL(a.href);toast('Downloaded');}
 renderTally();
+function rerenderCard(id){
+  const it=IDEAS.find(x=>x.id===id);const card=document.getElementById('c-'+id);
+  card.classList.remove('editing');
+  card.innerHTML=cardHTML(effective(it));
+  attachCardTools(card,it);applyCardState(card,id);
+}
+function applyCardState(card,id){
+  const edited=Object.keys(changedFields(id)).length>0;
+  card.classList.toggle('has-edit',edited);
+  card.classList.toggle('has-note',nonEmpty(REVIEW.notes[id]));
+  card.classList.toggle('has-cut',!!REVIEW.cuts[id]);
+  const body=card.lastElementChild; // the <div> from cardHTML
+  let flags=card.querySelector('.flags');if(flags)flags.remove();
+  const tags=[];
+  if(edited)tags.push('<span class="flag edit">edited</span>');
+  if(nonEmpty(REVIEW.notes[id]))tags.push('<span class="flag note">comment</span>');
+  if(REVIEW.cuts[id])tags.push('<span class="flag cut">cut</span>');
+  if(tags.length){const f=document.createElement('div');f.className='flags';
+    f.innerHTML=tags.join('');body.appendChild(f);}
+}
+function attachCardTools(card,it){
+  const t=document.createElement('div');t.className='cardtools';
+  t.innerHTML=`<button data-t="edit">✎ Edit</button><button data-t="comment">💬 Comment</button><button data-t="cut">✕ Cut</button>`;
+  t.querySelectorAll('button').forEach(b=>b.addEventListener('click',e=>{
+    e.stopPropagation();const k=b.dataset.t;
+    if(k==='edit')enterEdit(it.id);}));
+  card.appendChild(t);
+}
+function enterEdit(id){
+  const it=IDEAS.find(x=>x.id===id);const card=document.getElementById('c-'+id);
+  // compute effective BEFORE assigning undefined-keyed edit object (Object.assign copies undefineds)
+  const eff=effective(it);
+  const e=REVIEW.edits[id]=Object.assign({title:undefined,detail:undefined,quote:undefined,
+    category:undefined,confidence:undefined,topics:undefined},REVIEW.edits[id]||{});
+  // seed from effective values
+  ['title','detail','quote','category','confidence'].forEach(k=>{if(e[k]===undefined)e[k]=eff[k];});
+  if(e.topics===undefined)e.topics=(eff.topics||[]).slice();
+  card.classList.add('editing');
+  card.innerHTML=cardEditHTML(it,e);
+  // tool cluster shows Done
+  const t=document.createElement('div');t.className='cardtools';
+  t.innerHTML=`<button data-t="done" class="on">✓ Done</button>`;
+  t.querySelector('button').addEventListener('click',ev=>{ev.stopPropagation();commitEdit(id);});
+  card.appendChild(t);
+  wireEdit(card,id);
+}
+function cardEditHTML(it,e){
+  const src=TURNS[it.anchors[0]][1];
+  const catOpts=CATS.map(c=>`<option value="${c}"${c===e.category?' selected':''}>${c.replace('_',' ')}</option>`).join('');
+  const confOpts=CONFS.map(c=>`<option value="${c}"${c===e.confidence?' selected':''}>${c}</option>`).join('');
+  const chips=(e.topics||[]).map((tp,i)=>`<span class="topic echip" data-i="${i}">${tp}<button data-rm="${i}">×</button></span>`).join('');
+  return `<input type="checkbox" class="keep" disabled aria-label="keep">
+    <div>
+      <div class="tagrow">
+        <select class="esel" data-f="category">${catOpts}</select>
+        <select class="esel" data-f="confidence">${confOpts}</select>
+        <span class="src">⌖ ${src}</span>
+      </div>
+      <h3 class="efield" contenteditable="true" data-f="title">${e.title}</h3>
+      <p class="detail efield" contenteditable="true" data-f="detail">${e.detail}</p>
+      <blockquote class="quote efield" contenteditable="true" data-f="quote">${e.quote}</blockquote>
+      <div class="topics" data-topics-edit>${chips}<input class="topic-add" placeholder="+ topic" /></div>
+    </div>`;
+}
+function wireEdit(card,id){
+  const e=REVIEW.edits[id];
+  card.querySelectorAll('.efield').forEach(el=>{
+    el.addEventListener('click',ev=>ev.stopPropagation());
+    el.addEventListener('input',()=>{e[el.dataset.f]=el.textContent;commitReviewChange();});});
+  card.querySelectorAll('.esel').forEach(sel=>{
+    sel.addEventListener('click',ev=>ev.stopPropagation());
+    sel.addEventListener('change',()=>{e[sel.dataset.f]=sel.value;commitReviewChange();});});
+  const tw=card.querySelector('[data-topics-edit]');
+  tw.addEventListener('click',ev=>{ev.stopPropagation();
+    const rm=ev.target.getAttribute('data-rm');
+    if(rm!==null){e.topics.splice(+rm,1);redrawTopics(card,id);commitReviewChange();}});
+  const add=tw.querySelector('.topic-add');
+  add.addEventListener('keydown',ev=>{ev.stopPropagation();
+    if(ev.key==='Enter'&&nonEmpty(add.value)){e.topics.push(add.value.trim());add.value='';
+      redrawTopics(card,id);commitReviewChange();}});
+}
+function redrawTopics(card,id){
+  const e=REVIEW.edits[id],tw=card.querySelector('[data-topics-edit]');
+  const chips=(e.topics||[]).map((tp,i)=>`<span class="topic echip" data-i="${i}">${tp}<button data-rm="${i}">×</button></span>`).join('');
+  tw.innerHTML=chips+'<input class="topic-add" placeholder="+ topic" />';
+  const add=tw.querySelector('.topic-add');
+  add.addEventListener('keydown',ev=>{ev.stopPropagation();
+    if(ev.key==='Enter'&&nonEmpty(add.value)){e.topics.push(add.value.trim());add.value='';
+      redrawTopics(card,id);commitReviewChange();}});
+}
+function commitEdit(id){
+  // prune unchanged fields so the packet only carries real edits
+  const ch=changedFields(id);
+  if(Object.keys(ch).length===0)delete REVIEW.edits[id];else REVIEW.edits[id]=ch;
+  rerenderCard(id);commitReviewChange();
+}
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1400);}
 </script>
 </body>
