@@ -338,7 +338,7 @@
       <symbol id="ic-claude" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" d="M20.998 10.949H24v3.102h-3v3.028h-1.487V20H18v-2.921h-1.487V20H15v-2.921H9V20H7.488v-2.921H6V20H4.487v-2.921H3V14.05H0V10.95h3V5h17.998v5.949zM6 10.949h1.488V8.102H6v2.847zm10.51 0H18V8.102h-1.49v2.847z"/></symbol>
     </svg>
     <div class="how">
-      <p class="hint">From a raw recording to insights in Notion — a back-and-forth between you and Claude. The first steps run inside this tool today; the rest are planned and not yet built.</p>
+      <p class="hint">From a raw recording to insights in Notion — a back-and-forth between you and Claude. The review loop now runs inside this tool too; only the final Notion publish is planned and not yet built.</p>
       <div class="flow-legend">
         <span class="actor human"><svg><use href="#ic-human"/></svg> You</span> bring the material and make the calls
         <span style="color:var(--rule);font-weight:600">·</span>
@@ -386,9 +386,7 @@
         </div>
       </div>
 
-      <div class="next-rule"><div class="line"></div><span class="lbl">Next · planned, not yet built</span><div class="line"></div></div>
-
-      <div class="lane-row future">
+      <div class="lane-row">
         <div class="l">
           <div class="lane-card">
             <div class="ch"><span class="actor human"><svg><use href="#ic-human"/></svg> You</span><h4>Review, edit &amp; classify</h4></div>
@@ -399,16 +397,18 @@
         <div class="r"></div>
       </div>
 
-      <div class="lane-row future">
+      <div class="lane-row">
         <div class="l"></div>
         <div class="spine"><div class="seg top"></div><div class="seg bot"></div><div class="avatar claude"><svg><use href="#ic-claude"/></svg></div></div>
         <div class="r">
           <div class="lane-card">
             <div class="ch"><span class="actor claude"><svg><use href="#ic-claude"/></svg> Claude</span><h4>Folds in your changes</h4></div>
-            <p>Claude reads your edits, classifications, and answers, then updates the insights — resolving the queries you settled and tagging each one with its target database.</p>
+            <p>Claude reads your edits, comments, and cuts from the packet you send back, then rebuilds the report with them folded in — resolving open queries and dropping cut cards.</p>
           </div>
         </div>
       </div>
+
+      <div class="next-rule"><div class="line"></div><span class="lbl">Next · planned, not yet built</span><div class="line"></div></div>
 
       <div class="lane-row future">
         <div class="l"></div>
