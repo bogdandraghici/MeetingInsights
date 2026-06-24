@@ -196,6 +196,15 @@
   .card.cut{opacity:.5}
   .card.cut h3,.card.cut .detail,.card.cut .quote{text-decoration:line-through;
     text-decoration-color:var(--mark)}
+  .cmt{margin-top:10px}
+  .cmt-in{width:100%;min-height:54px;border:1px solid var(--amber);border-radius:8px;
+    padding:8px 10px;font:inherit;font-size:13px;background:#FBF7EC;resize:vertical;color:var(--ink)}
+  .cmt-in::placeholder{color:var(--ink-soft)}
+  .mast-cmt{margin:10px 0 0}
+  .mast-note-btn{background:none;border:1px solid var(--rule);border-radius:7px;
+    font:inherit;font-size:12px;padding:4px 10px;cursor:pointer;color:var(--ink-soft)}
+  .mast-note-btn:hover{border-color:var(--ink);color:var(--ink)}
+  .mast-note-btn.on{background:var(--mark);color:#fff;border-color:var(--mark)}
   .efield[contenteditable="true"]{outline:none;border-bottom:1px dashed var(--blue);
     background:#F7FAFD;border-radius:3px;padding:0 2px}
   .card.editing .quote.efield[contenteditable="true"]{background:#F7FAFD}
@@ -232,6 +241,9 @@
       <div><b id="m-kept">0</b><span>kept</span></div>
       <div><b id="m-rep">0</b><span>repairs</span></div>
       <div><b id="m-query" style="color:var(--mark)">0</b><span>open queries</span></div>
+    </div>
+    <div class="mast-cmt">
+      <button class="mast-note-btn" data-act="report-note" onclick="toggleReportNote(this)">💬 Comment on the whole report</button>
     </div>
   </header>
 
@@ -869,7 +881,8 @@ function attachCardTools(card,it){
   t.querySelectorAll('button').forEach(b=>b.addEventListener('click',e=>{
     e.stopPropagation();const k=b.dataset.t;
     if(k==='edit')enterEdit(it.id);
-    else if(k==='cut')toggleCut(it.id);}));
+    else if(k==='cut')toggleCut(it.id);
+    else if(k==='comment')toggleCardComment(it.id);}));
   card.appendChild(t);
 }
 function enterEdit(id){
@@ -945,6 +958,30 @@ function toggleCut(id){
   const card=document.getElementById('c-'+id);
   card.classList.toggle('cut',!!REVIEW.cuts[id]);
   applyCardState(card,id);commitReviewChange();}
+function commentField(initial,onChange,placeholder){
+  const wrap=document.createElement('div');wrap.className='cmt';
+  const ta=document.createElement('textarea');ta.className='cmt-in';
+  ta.value=initial||'';ta.placeholder=placeholder||'Comment for Claude…';
+  ta.addEventListener('click',e=>e.stopPropagation());
+  ta.addEventListener('input',()=>onChange(ta.value));
+  wrap.appendChild(ta);return wrap;
+}
+function toggleCardComment(id){
+  const card=document.getElementById('c-'+id);
+  const host=card.querySelector(':scope > div'); // the card body <div> from cardHTML
+  let box=host.querySelector(':scope > .cmt');
+  if(box){const ta=box.querySelector('.cmt-in');ta.focus();return;}
+  box=commentField(REVIEW.notes[id]||'',v=>{REVIEW.notes[id]=v;applyCardState(card,id);commitReviewChange();},'What should change about this insight? (merge, re-scope, wrong speaker…)');
+  host.appendChild(box);box.querySelector('.cmt-in').focus();
+}
+function toggleReportNote(btn){
+  const host=btn.parentElement;let box=host.querySelector('.cmt');
+  if(box){box.querySelector('.cmt-in').focus();return;}
+  box=commentField(REVIEW.reportNote,v=>{REVIEW.reportNote=v;
+    btn.classList.toggle('on',nonEmpty(v));commitReviewChange();},
+    'Overall direction: too many cards, wrong framing, merge these two…');
+  host.appendChild(box);box.querySelector('.cmt-in').focus();
+}
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1400);}
 </script>
 </body>
