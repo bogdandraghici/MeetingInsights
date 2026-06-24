@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # extract-frames.sh — pull a still from a session recording at each insight timestamp.
-# Part of the ux-session-extract pipeline. Resolves "needs screen context" cards.
+# Part of the meetinginsights pipeline. Resolves "needs screen context" cards.
 #
 # Usage:
 #   ./extract-frames.sh VIDEO MANIFEST OUTDIR [SCALE_WIDTH]

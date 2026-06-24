@@ -1,19 +1,19 @@
 ---
-name: ux-session-extract
+name: meetinginsights
 description: >
   Repair Romanian-primary, English-sprinkled user-testing transcripts and extract
   reviewable insights into a fixed HTML review tool. Use whenever the user has a
-  transcript from a user-testing / usability / research session that is mostly
-  Romanian with some English technical terms and wants it cleaned up and/or turned
-  into triageable insight cards. Trigger on phrases like "use the ux session extract
-  skill", "clean up this transcript", "extract ideas from this session", "user
-  testing transcript", "the transcriber broke the words", or any time a raw session
-  transcript (often with a recording) is provided for analysis. Also use when the
-  user complains that mixed-language transcription mangled words, or that the
-  transcript alone is too vague to act on.
+  transcript from a user-testing / usability / research session (or meeting) that is
+  mostly Romanian with some English technical terms and wants it cleaned up and/or
+  turned into triageable insight cards. Trigger on phrases like "use the meetinginsights
+  skill", "meeting insights", "use meeting insights on this", "clean up this transcript",
+  "extract ideas from this session", "user testing transcript", "the transcriber broke
+  the words", or any time a raw session/meeting transcript (often with a recording) is
+  provided for analysis. Also use when the user complains that mixed-language
+  transcription mangled words, or that the transcript alone is too vague to act on.
 ---
 
-# UX Session Extract
+# Meeting Insights
 
 ## Intake — gather inputs before doing anything
 
