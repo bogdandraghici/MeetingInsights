@@ -851,7 +851,7 @@ function applyCardState(card,id){
   card.classList.toggle('has-edit',edited);
   card.classList.toggle('has-note',nonEmpty(REVIEW.notes[id]));
   card.classList.toggle('has-cut',!!REVIEW.cuts[id]);
-  const body=card.lastElementChild; // the <div> from cardHTML
+  const body=card.querySelector(':scope > div:not(.cardtools)'); // the <div> from cardHTML
   let flags=card.querySelector('.flags');if(flags)flags.remove();
   const tags=[];
   if(edited)tags.push('<span class="flag edit">edited</span>');
