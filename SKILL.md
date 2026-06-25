@@ -151,6 +151,36 @@ Record every fix in the three-bucket repair log:
 Mark in-transcript uncertain spans with `<span class="unsure" title="...">…</span>` so
 they're visible in context (the template's transcript click-handler ignores them).
 
+## Phase 1b — Reconcile speakers (diarization repair)
+
+ASR diarization is frequently wrong in two ways: **phantom speakers** (one real person
+split across several labels, so the transcript shows more voices than were in the room)
+and **misattributed turns** (a line credited to the wrong voice — rife on backchannels,
+crosstalk, and turn boundaries). Because Phase 2 attributes every insight *per turn*, a
+bad diarization quietly poisons the whole extraction — so reconcile it before extracting,
+as you read.
+
+Anchor to the **known cast** you pinned at intake (how many real voices, who is the
+subject). Collapse every ASR label onto the canonical `P`/`F`/`B`/`O` in `SPK` — a phantom
+label must never reach `TURNS` — and re-attribute any turn whose *content* contradicts its
+label (a clear facilitator prompt tagged as the participant, a first-person reaction
+tagged as the facilitator, a question and its answer sharing one label). The decision
+cues — role/content, adjacency logic, backchannels, and resolving by audio — are in
+`references/repair-heuristics.md` ("Speaker / diarization reconciliation").
+
+Record it so it stays reviewable, don't silently rewrite:
+- Set the masthead **"N speakers (diarized)"** sub to the **reconciled** count, not the
+  ASR's inflated one, and say what you collapsed in your summary (e.g. "ASR's 5 labels →
+  3 real speakers").
+- A confidently-wrong label: just fix it. A **genuinely ambiguous** one: leave your
+  best-guess speaker but log it as a **confirm**/**query** entry whose question is *who
+  said this?* (e.g. `["@04:12 „nu merge ușor”", "Cristi or the facilitator?"]`) so it
+  rides the same clarification pass; if an insight leans on that turn, set the idea's
+  `needs:true` + `q`.
+- The user's Phase 3 **turn re-attribution** (transcript-line comments) is the correction
+  channel for anything that still slips through — `turns[].comment` may say "this is
+  Bogdan, not Cristi", and you apply it on rebuild.
+
 ## Phase 2 — Extract
 
 Pull insights into `IDEAS`. Categories, confidence, anchors, topics: see
@@ -294,4 +324,6 @@ variable is unset (older runtimes), fall back to paths relative to this SKILL.md
 ## Speaker codes
 
 `P` participant · `F`/`B` two facilitators (blue-ish / plum) · `O` team/observer. Map the
-ASR's diarization labels onto these and set readable names in `SPK`.
+ASR's diarization labels onto these and set readable names in `SPK` — reconciling phantom
+and misattributed labels first (see **Phase 1b**), so a label in `SPK`/`TURNS` always
+corresponds to a real person.
