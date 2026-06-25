@@ -187,14 +187,19 @@
   .card.editing{box-shadow:0 0 0 2px var(--blue),0 1px 0 var(--shadow)}
   .card.editing .cardtools{opacity:1}
   .flags{display:flex;gap:6px;margin-top:9px}
-  .flag{font-size:10px;letter-spacing:.07em;text-transform:uppercase;font-weight:700;
-    border-radius:5px;padding:2px 7px}
+  .flag{font:inherit;font-size:10px;letter-spacing:.07em;text-transform:uppercase;font-weight:700;
+    border:none;border-radius:5px;padding:2px 7px;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
+  .flag .flag-x{font-size:11px;line-height:1;opacity:.5}
+  .flag:hover .flag-x{opacity:1}
   .flag.edit{background:#E2EBF1;color:#33536F}
   .flag.note{background:#EDE6D6;color:#7A6320}
   .card.excluded{opacity:.5}
   .card.excluded h3,.card.excluded .detail,.card.excluded .quote{text-decoration:line-through;
     text-decoration-color:var(--mark)}
   .cmt{margin-top:10px}
+  .cmt-rm{margin-top:6px;font:inherit;font-size:11px;color:var(--ink-soft);background:none;border:none;
+    cursor:pointer;padding:2px 0;text-decoration:underline;text-underline-offset:2px}
+  .cmt-rm:hover{color:var(--mark)}
   .cmt-in{width:100%;min-height:54px;border:1px solid var(--amber);border-radius:8px;
     padding:8px 10px;font:inherit;font-size:13px;background:#FBF7EC;resize:vertical;color:var(--ink)}
   .cmt-in::placeholder{color:var(--ink-soft)}
@@ -265,9 +270,7 @@
   <section id="view-ideas">
     <div class="panes">
       <div class="scriptcol">
-        <div class="scripthead">Repaired transcript
-          <button onclick="clearHl()">Clear highlight</button>
-        </div>
+        <div class="scripthead">Repaired transcript</div>
         <div class="scriptwrap">
           <button class="edgehint top" id="edge-up" onclick="jumpEdge(-1)" aria-label="Jump to highlighted lines above"><span class="arrow">▲</span> <span id="edge-up-n"></span> above</button>
           <div class="script" id="script"></div>
@@ -736,9 +739,6 @@ function locate(id,fromTranscript){
   if(fromTranscript)card.scrollIntoView({behavior:'smooth',block:'center'});
   updateEdgeHints();
 }
-function clearHl(){document.querySelectorAll('.turn.hl,.turn.hl-primary').forEach(e=>e.classList.remove('hl','hl-primary'));
-  if(activeCard)document.getElementById('c-'+activeCard)?.classList.remove('active');activeCard=null;updateEdgeHints();}
-
 // Off-screen edge indicators: when the active idea's source turns sit outside the
 // visible transcript, show "N above / N below" pills that jump to the nearest one.
 const EDGE_PAD=4;
@@ -894,11 +894,17 @@ function applyCardState(card,id){
   const body=card.querySelector(':scope > div:not(.cardtools)'); // the <div> from cardHTML
   let flags=card.querySelector('.flags');if(flags)flags.remove();
   const tags=[];
-  if(edited)tags.push('<span class="flag edit">edited</span>');
-  if(nonEmpty(REVIEW.notes[id]))tags.push('<span class="flag note">comment</span>');
+  if(edited)tags.push({cls:'edit',label:'edited',title:'Undo edits — restore the original wording',act:()=>revertEdit(id)});
+  if(nonEmpty(REVIEW.notes[id]))tags.push({cls:'note',label:'comment',title:'Remove this comment',act:()=>removeNote(id)});
   if(tags.length){const f=document.createElement('div');f.className='flags';
-    f.innerHTML=tags.join('');body.appendChild(f);}
+    tags.forEach(t=>{const b=document.createElement('button');b.type='button';b.className='flag '+t.cls;b.title=t.title;
+      b.innerHTML=`${t.label} <span class="flag-x">✕</span>`;
+      b.addEventListener('click',ev=>{ev.stopPropagation();t.act();});
+      f.appendChild(b);});
+    body.appendChild(f);}
 }
+function revertEdit(id){delete REVIEW.edits[id];rerenderCard(id);commitReviewChange();}
+function removeNote(id){delete REVIEW.notes[id];rerenderCard(id);commitReviewChange();}
 function attachCardTools(card,it){
   const t=document.createElement('div');t.className='cardtools';
   t.innerHTML=`<button data-t="edit">✎ Edit</button><button data-t="comment">💬 Comment</button>`;
@@ -921,8 +927,9 @@ function enterEdit(id){
   card.innerHTML=cardEditHTML(it,e);
   // tool cluster shows Done
   const t=document.createElement('div');t.className='cardtools';
-  t.innerHTML=`<button data-t="done" class="on">✓ Done</button>`;
-  t.querySelector('button').addEventListener('click',ev=>{ev.stopPropagation();commitEdit(id);});
+  t.innerHTML=`<button data-t="revert">↺ Revert</button><button data-t="done" class="on">✓ Done</button>`;
+  t.querySelectorAll('button').forEach(b=>b.addEventListener('click',ev=>{ev.stopPropagation();
+    b.dataset.t==='revert'?revertEdit(id):commitEdit(id);}));
   card.appendChild(t);
   wireEdit(card,id);
 }
@@ -982,7 +989,9 @@ function commentField(initial,onChange,placeholder){
   ta.value=initial||'';ta.placeholder=placeholder||'Comment for Claude…';
   ta.addEventListener('click',e=>e.stopPropagation());
   ta.addEventListener('input',()=>onChange(ta.value));
-  wrap.appendChild(ta);return wrap;
+  const rm=document.createElement('button');rm.type='button';rm.className='cmt-rm';rm.textContent='Remove comment';
+  rm.addEventListener('click',e=>{e.stopPropagation();onChange('');wrap.remove();});
+  wrap.appendChild(ta);wrap.appendChild(rm);return wrap;
 }
 function toggleCardComment(id){
   const card=document.getElementById('c-'+id);

@@ -87,7 +87,10 @@ works), the sticky transcript pane, card structure, the glossary-cluster repair 
 category **and topic** filters, export panel, footer, responsive rules — is part of the
 template and stays. Also protected now: the **review round-trip** machinery — the hover action
 buttons on cards/repairs/turns/masthead (`✎ Edit` / `💬 Comment`), the
-in-place edit fields, the comment boxes, the **keep checkbox** (every card starts
+in-place edit fields (revertible — `↺ Revert` in edit mode, or the clickable
+`edited ✕` flag, discards the edit and restores the original), the comment boxes (each
+has a `Remove comment` button, and a card's `comment ✕` flag removes it), the
+**keep checkbox** (every card starts
 **checked/included**; unchecking it excludes the card — the card fades out and is struck
 through to make clear it won't be included, and it drops out of both the export and the
 review packet), the toolbar edits/comments/excluded tally, and the `Send to Claude ↑`
