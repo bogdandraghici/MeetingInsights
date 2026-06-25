@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400;1,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <title>Session Review — KB Export/Import (full)</title>
 <style>
   :root{
@@ -12,24 +15,24 @@
   }
   *{box-sizing:border-box}
   html,body{margin:0;background:var(--paper);color:var(--ink);
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
-    -webkit-font-smoothing:antialiased;line-height:1.5}
-  .serif{font-family:Georgia,"Iowan Old Style","Times New Roman",serif}
-  .mono{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+    font-family:"Open Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+    font-size:14px;-webkit-font-smoothing:antialiased;line-height:1.5}
+  .mono{font-family:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace}
   .wrap{max-width:1200px;margin:0 auto;padding:0 24px}
 
-  header.mast{border-bottom:2px solid var(--ink);margin-top:36px}
-  .eyebrow{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--mark);font-weight:700}
-  h1{font-size:32px;line-height:1.1;margin:8px 0 6px;font-weight:600}
+  header.mast{border-bottom:1px solid var(--rule);margin-top:36px;margin-bottom:16px}
+  .eyebrow{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--ink-soft);font-weight:700}
+  h1{font-size:24px;line-height:1.2;margin:8px 0 6px;font-weight:700;letter-spacing:-.01em}
   .sub{color:var(--ink-soft);font-size:14px;margin-bottom:6px}
   .legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--ink-soft);margin-bottom:8px}
   .legend i{font-style:normal;display:inline-flex;align-items:center;gap:5px}
   .sw{width:9px;height:9px;border-radius:50%;display:inline-block}
-  .meta{display:flex;gap:26px;flex-wrap:wrap;padding:12px 0;border-top:1px solid var(--rule);margin-top:10px;font-size:13px}
-  .meta b{font-size:20px;font-weight:600;display:block;line-height:1}
+  .mast-row{display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap;border-top:1px solid var(--rule);margin-top:10px;padding:12px 0}
+  .meta{display:flex;gap:26px;flex-wrap:wrap;font-size:13px}
+  .meta b{font-size:18px;font-weight:600;display:block;line-height:1}
   .meta span{color:var(--ink-soft);font-size:11px;letter-spacing:.12em;text-transform:uppercase}
 
-  nav.tabs{display:flex;gap:4px;margin:24px 0 16px}
+  nav.tabs{display:flex;gap:4px;margin:0;flex-wrap:wrap}
   .tab{background:none;border:1px solid var(--rule);border-radius:999px;padding:7px 16px;font:inherit;font-size:13px;cursor:pointer;color:var(--ink-soft)}
   .tab[aria-selected="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
 
@@ -55,7 +58,7 @@
   .lane-card .ch{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:7px}
   .lane-card h4{margin:0;font-size:17px;font-weight:600;line-height:1.25;color:var(--ink)}
   .lane-row.future .lane-card h4{color:#5C544A}
-  .lane-card p{margin:0;font-family:Georgia,"Iowan Old Style",serif;font-size:14.5px;line-height:1.55;color:#5A534B}
+  .lane-card p{margin:0;font-size:14px;line-height:1.55;color:#5A534B}
   .lane-row.future .lane-card p{color:#857D72}
   .phase-tag{font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);border:1px solid var(--rule);border-radius:999px;padding:2px 8px;font-weight:600}
   .here{font-size:10px;letter-spacing:.07em;text-transform:uppercase;background:var(--green);color:#fff;border-radius:999px;padding:3px 9px;font-weight:700}
@@ -71,12 +74,12 @@
     .lane-card h4{font-size:15px} .lane-card p{font-size:13.5px}
   }
 
-  .panes{display:grid;grid-template-columns:minmax(300px,42%) 1fr;gap:24px;align-items:start}
-  .scriptcol{position:sticky;top:12px;max-height:calc(100vh - 24px);display:flex;flex-direction:column}
-  .scripthead{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);display:flex;align-items:center;gap:8px;margin-bottom:8px}
+  .panes{display:grid;grid-template-columns:1fr minmax(300px,40%);gap:24px;align-items:start}
+  .scriptcol{order:2;position:sticky;top:0;max-height:100vh;display:flex;flex-direction:column;background:var(--paper-2);border:1px solid var(--rule);border-radius:12px;overflow:hidden}
+  .scripthead{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);display:flex;align-items:center;gap:8px;min-height:48px;padding:0 14px;border-bottom:1px solid var(--rule);flex:none}
   .scripthead button{margin-left:auto;background:none;border:1px solid var(--rule);border-radius:7px;font:inherit;font-size:12px;padding:4px 10px;cursor:pointer;color:var(--ink-soft)}
   .scriptwrap{position:relative;flex:1;min-height:0;display:flex;flex-direction:column}
-  .script{overflow:auto;flex:1;min-height:0;border:1px solid var(--rule);border-radius:12px;background:#fff;padding:6px 4px;box-shadow:0 1px 0 var(--shadow)}
+  .script{overflow:auto;flex:1;min-height:0;border:none;background:transparent;padding:4px 6px;box-shadow:none}
   .edgehint{position:absolute;left:50%;transform:translateX(-50%);z-index:6;display:none;align-items:center;gap:5px;
     font:inherit;font-size:11px;font-weight:600;letter-spacing:.04em;color:var(--ink);cursor:pointer;
     background:#fff;border:1px solid var(--rule);border-radius:999px;padding:5px 11px;box-shadow:0 2px 8px var(--shadow)}
@@ -91,42 +94,45 @@
   .turn .ts{font-size:10px;color:var(--ink-soft)}
   .turn.P .spk{color:var(--blue)} .turn.F .spk{color:var(--ink-soft)}
   .turn.B .spk{color:var(--plum)} .turn.O .spk{color:#9a948a}
-  .turn .txt{font-size:13.5px}
-  .turn:hover{background:var(--paper-2)}
+  .turn .txt{font-size:12.5px;line-height:1.45}
+  .turn:hover{background:#fff}
   .turn.hl{background:var(--hl);box-shadow:inset 3px 0 0 var(--green)}
   .turn.hl-primary{background:var(--hl);box-shadow:inset 3px 0 0 var(--mark)}
   .turn.anchored .spk::after{content:"•";color:var(--green);margin-left:6px}
   .unsure{background:#F4E6C4;border-bottom:1px dashed var(--amber);padding:0 2px;border-radius:2px;cursor:help}
 
-  .toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:11px 13px;background:var(--paper-2);border:1px solid var(--rule);border-radius:10px;margin-bottom:14px;position:sticky;top:12px;z-index:5}
+  .toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-height:56px;padding:8px 2px;background:var(--paper);border-bottom:1px solid var(--rule);margin-bottom:14px;position:sticky;top:0;z-index:5}
   .toolbar .count{font-weight:600} .toolbar .count em{color:var(--green);font-style:normal}
+  .tb-break{flex-basis:100%;height:0;margin:0}
   .spacer{flex:1}
   button.act{background:var(--ink);color:var(--paper);border:none;border-radius:8px;padding:8px 13px;font:inherit;font-size:13px;cursor:pointer}
   button.ghost{background:none;color:var(--ink);border:1px solid var(--rule)} button.ghost:hover{border-color:var(--ink)}
-  select.filter{font:inherit;font-size:13px;border:1px solid var(--rule);border-radius:8px;padding:7px 10px;background:#fff}
+  select.filter{font:inherit;font-size:13px;border:1px solid var(--rule);border-radius:8px;padding:7px 10px;background:#fff;max-width:150px}
 
-  .card{border:1px solid var(--rule);border-radius:12px;background:#fff;padding:16px 16px 14px;margin-bottom:13px;display:grid;grid-template-columns:30px 1fr;gap:13px;box-shadow:0 1px 0 var(--shadow);transition:border-color .15s,box-shadow .15s;cursor:pointer}
-  .card.active{box-shadow:0 0 0 2px var(--mark),0 1px 0 var(--shadow)}
+  .card{border:1px solid var(--rule);border-radius:12px;background:#fff;padding:16px 16px 14px;margin-bottom:13px;display:grid;grid-template-columns:30px 1fr;gap:13px;box-shadow:0 1px 2px rgba(33,31,27,.05),0 10px 24px -16px rgba(33,31,27,.22);transition:border-color .15s,box-shadow .15s,transform .15s;cursor:pointer}
+  .card:hover{border-color:var(--ink-soft);transform:translateY(-1px);box-shadow:0 2px 5px rgba(33,31,27,.06),0 16px 32px -18px rgba(33,31,27,.30)}
+  .card.active{border-color:var(--mark);box-shadow:0 0 0 2px var(--mark),0 10px 24px -16px rgba(33,31,27,.22)}
   .keep{appearance:none;width:23px;height:23px;border:1.5px solid var(--ink-soft);border-radius:6px;cursor:pointer;position:relative;margin-top:2px;background:#fff;flex:none}
   .keep:checked{background:var(--green);border-color:var(--green)}
   .keep:checked::after{content:"✓";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:700}
-  .card h3{margin:0 0 6px;font-size:16px;font-weight:600;line-height:1.25}
+  .card h3{margin:0 0 6px;font-size:18px;font-weight:600;line-height:1.3;letter-spacing:-.01em}
   .tagrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:7px}
-  .tag{font-size:10px;letter-spacing:.09em;text-transform:uppercase;font-weight:700;padding:3px 8px;border-radius:5px;background:var(--paper-2);color:var(--ink-soft)}
-  .tag.pain_point{background:#F6E3DF;color:#9A352A}
-  .tag.feature_request{background:#E2EBF1;color:#33536F}
-  .tag.naming_copy{background:#EDE6D6;color:#7A6320}
-  .tag.design_decision,.tag.design_insight{background:#DDEDE6;color:#246253}
-  .tag.open_question{background:#F0E7CE;color:#856516}
-  .tag.context{background:#E7E5DF;color:#55514a}
-  .conf{font-size:10px;letter-spacing:.05em;text-transform:uppercase;font-weight:700;display:inline-flex;align-items:center;gap:5px;color:var(--ink-soft)}
+  .tag{font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;padding:0;background:none;color:var(--ink-soft);display:inline-flex;align-items:center;gap:6px}
+  .tag::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor;flex:none}
+  .tag.pain_point{color:#9A352A}
+  .tag.feature_request{color:#33536F}
+  .tag.naming_copy{color:#7A6320}
+  .tag.design_decision,.tag.design_insight{color:#246253}
+  .tag.open_question{color:#856516}
+  .tag.context{color:#55514a}
+  .conf{font-size:10px;letter-spacing:.05em;text-transform:uppercase;font-weight:600;display:inline-flex;align-items:center;gap:5px;color:var(--ink-soft)}
   .dot{width:8px;height:8px;border-radius:50%;display:inline-block}
-  .conf.high .dot{background:var(--green)} .conf.medium .dot{background:var(--amber)} .conf.low .dot{background:var(--mark)}
-  .src{margin-left:auto;font-size:11px;color:var(--mark);font-weight:600;white-space:nowrap;transition:opacity .12s}
+  .conf .dot{display:none}
+  .src{margin-left:auto;font-size:11px;color:var(--ink-soft);font-weight:600;white-space:nowrap;transition:opacity .12s}
   .card:hover .src,.card.editing .src{opacity:0}
   .src .srcn{color:var(--ink-soft);font-weight:600}
-  .detail{margin:0 0 10px;font-size:14.5px}
-  .quote{border-left:3px solid var(--rule);padding:7px 0 7px 13px;margin:0 0 4px;font-family:Georgia,serif;font-style:italic;color:#3a372f;font-size:14px}
+  .detail{margin:0 0 10px;font-size:14px;color:var(--ink-soft)}
+  .quote{border-left:3px solid var(--rule);padding:7px 0 7px 13px;margin:0 0 4px;font-style:italic;color:#3a372f;font-size:14px;line-height:1.5}
   .topics{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
   .topic{font-size:10.5px;color:var(--ink-soft);border:1px solid var(--rule);border-radius:999px;padding:2px 9px;white-space:nowrap}
   .who{font-size:11px;color:var(--ink-soft);margin-top:7px;letter-spacing:.04em}
@@ -153,16 +159,16 @@
   .export{display:none;border:1px solid var(--rule);border-radius:12px;background:#fff;padding:16px;margin:0 0 20px}
   .export.show{display:block}
   .export .row{display:flex;gap:8px;align-items:center;margin-bottom:10px}
-  .export textarea{width:100%;height:200px;border:1px solid var(--rule);border-radius:8px;padding:12px;font-family:ui-monospace,Menlo,monospace;font-size:12px;background:var(--paper);resize:vertical}
+  .export textarea{width:100%;height:200px;border:1px solid var(--rule);border-radius:8px;padding:12px;font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;font-size:12px;background:var(--paper);resize:vertical}
   /* review round-trip */
   .review{display:none;border:1px solid var(--mark);border-radius:12px;background:#fff;padding:16px;margin:0 0 20px}
   .review.show{display:block}
   .review .row{display:flex;gap:8px;align-items:center;margin-bottom:10px}
   .review .lead{font-size:13px;color:var(--ink-soft);margin:0 0 10px}
-  .review textarea{width:100%;height:220px;border:1px solid var(--rule);border-radius:8px;padding:12px;font-family:ui-monospace,Menlo,monospace;font-size:12px;background:var(--paper);resize:vertical}
+  .review textarea{width:100%;height:220px;border:1px solid var(--rule);border-radius:8px;padding:12px;font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;font-size:12px;background:var(--paper);resize:vertical}
   .review-tally{font-size:12px;color:var(--ink-soft)}
   .review-tally em{color:var(--mark);font-style:normal;font-weight:700}
-  button.send{background:var(--mark);color:#fff;border:none;border-radius:8px;padding:8px 13px;font:inherit;font-size:13px;cursor:pointer}
+  button.send{background:var(--ink);color:var(--paper);border:none;border-radius:8px;padding:8px 13px;font:inherit;font-size:13px;cursor:pointer}
   button.send[disabled]{opacity:.45;cursor:default}
   .seg{display:inline-flex;border:1px solid var(--rule);border-radius:8px;overflow:hidden}
   .seg button{background:#fff;border:none;padding:7px 14px;font:inherit;font-size:13px;cursor:pointer}
@@ -235,7 +241,7 @@
 <div class="wrap">
   <header class="mast">
     <div class="eyebrow">User testing · 2026-06-17 · full recording · transcript repaired</div>
-    <h1 class="serif">Knowledge Base export / import</h1>
+    <h1>Knowledge Base export / import</h1>
     <div class="sub">22 min · 4 speakers (diarized) · RO-primary with EN terms</div>
     <div class="legend">
       <i><span class="sw" style="background:var(--blue)"></span>Cristi — participant</i>
@@ -243,22 +249,23 @@
       <i><span class="sw" style="background:var(--plum)"></span>Bogdan</i>
       <i><span class="sw" style="background:#9a948a"></span>Observer</i>
     </div>
-    <div class="meta">
-      <div><b id="m-ideas">0</b><span>ideas</span></div>
-      <div><b id="m-kept">0</b><span>kept</span></div>
-      <div><b id="m-rep">0</b><span>repairs</span></div>
-      <div><b id="m-query" style="color:var(--mark)">0</b><span>open queries</span></div>
-    </div>
     <div class="mast-cmt">
       <button class="mast-note-btn" data-act="report-note" onclick="toggleReportNote(this)">💬 Comment on the whole report</button>
     </div>
+    <div class="mast-row">
+      <div class="meta">
+        <div><b id="m-ideas">0</b><span>ideas</span></div>
+        <div><b id="m-kept">0</b><span>kept</span></div>
+        <div><b id="m-rep">0</b><span>repairs</span></div>
+        <div><b id="m-query" style="color:var(--mark)">0</b><span>open queries</span></div>
+      </div>
+      <nav class="tabs">
+        <button class="tab" id="tab-ideas" aria-selected="true" onclick="showTab('ideas')">Ideas + transcript</button>
+        <button class="tab" id="tab-rep" aria-selected="false" onclick="showTab('rep')">Repair log</button>
+        <button class="tab" id="tab-how" aria-selected="false" onclick="showTab('how')">How this works</button>
+      </nav>
+    </div>
   </header>
-
-  <nav class="tabs">
-    <button class="tab" id="tab-ideas" aria-selected="true" onclick="showTab('ideas')">Ideas + transcript</button>
-    <button class="tab" id="tab-rep" aria-selected="false" onclick="showTab('rep')">Repair log</button>
-    <button class="tab" id="tab-how" aria-selected="false" onclick="showTab('how')">How this works</button>
-  </nav>
 
   <section id="view-ideas">
     <div class="panes">
@@ -272,15 +279,15 @@
       </div>
       <div class="ideacol">
         <div class="toolbar">
-          <span class="count"><em id="kept-n">0</em>/<span id="total-n">0</span> kept</span>
           <select class="filter" id="catFilter" onchange="applyFilter()"></select>
           <select class="filter" id="topicFilter" onchange="applyFilter()"></select>
           <button class="ghost act" onclick="selectAll(true)">All</button>
           <button class="ghost act" onclick="selectAll(false)">Clear</button>
+          <span class="spacer"></span>
           <button class="ghost act conflict-toggle" id="conflictToggle" aria-pressed="false" onclick="toggleConflicts()" title="Show only insights that are in tension with another">⚡ Conflicts</button>
+          <span class="tb-break"></span>
           <span class="review-tally" id="review-tally" data-tip=""></span>
           <span class="spacer"></span>
-          <button class="act" onclick="openExport()">Export kept ↓</button>
           <button class="send" data-act="send-review" id="sendReview" onclick="openReview()" disabled>Send to Claude ↑</button>
         </div>
         <p class="hint">Click a card to highlight its source lines — <span style="color:var(--mark)">red bar</span> = first line, <span style="color:var(--green)">green bars</span> = the rest · click a transcript line to jump to its card. All cards are included by default — uncheck one to drop it (it fades out).</p>
@@ -702,7 +709,6 @@ repSection('Needs your input',REPAIRS.query,'query');
 const repCount=REPAIRS.auto.length+REPAIRS.confirm.length+REPAIRS.query.length;
 set('m-ideas',IDEAS.length);set('m-rep',repCount);
 set('m-query',REPAIRS.query.length+IDEAS.filter(i=>i.needs).length);
-document.getElementById('total-n').textContent=IDEAS.length;
 function set(id,v){document.getElementById(id).textContent=v;}
 
 let activeCard=null;
@@ -745,7 +751,7 @@ function jumpEdge(dir){
   addEventListener('resize',()=>{if(!raf)raf=requestAnimationFrame(tick);});})();
 
 function toggle(id,on){on?kept.add(id):kept.delete(id);document.getElementById('c-'+id).classList.toggle('excluded',!on);refresh();commitReviewChange();}
-function refresh(){document.getElementById('kept-n').textContent=kept.size;document.getElementById('m-kept').textContent=kept.size;
+function refresh(){document.getElementById('m-kept').textContent=kept.size;
   if(document.getElementById('exportPanel').classList.contains('show'))renderOut();}
 function selectAll(on){document.querySelectorAll('.card').forEach(card=>{ if(card.style.display==='none')return;
   const cb=card.querySelector('.keep');cb.checked=on;const id=card.id.slice(2);on?kept.add(id):kept.delete(id);card.classList.toggle('excluded',!on);});refresh();commitReviewChange();}
@@ -961,22 +967,27 @@ function commitEdit(id){
   if(Object.keys(ch).length===0)delete REVIEW.edits[id];else REVIEW.edits[id]=ch;
   rerenderCard(id);commitReviewChange();
 }
-function commentField(initial,onChange,placeholder){
+function commentField(initial,onChange,placeholder,showRemove){
   const wrap=document.createElement('div');wrap.className='cmt';
   const ta=document.createElement('textarea');ta.className='cmt-in';
   ta.value=initial||'';ta.placeholder=placeholder||'Comment for Claude…';
   ta.addEventListener('click',e=>e.stopPropagation());
   ta.addEventListener('input',()=>onChange(ta.value));
-  const rm=document.createElement('button');rm.type='button';rm.className='cmt-rm';rm.textContent='Remove comment';
-  rm.addEventListener('click',e=>{e.stopPropagation();onChange('');wrap.remove();});
-  wrap.appendChild(ta);wrap.appendChild(rm);return wrap;
+  wrap.appendChild(ta);
+  // showRemove defaults true; card comments pass false since their "comment ✕" chip already removes
+  if(showRemove!==false){
+    const rm=document.createElement('button');rm.type='button';rm.className='cmt-rm';rm.textContent='Remove comment';
+    rm.addEventListener('click',e=>{e.stopPropagation();onChange('');wrap.remove();});
+    wrap.appendChild(rm);
+  }
+  return wrap;
 }
 function toggleCardComment(id){
   const card=document.getElementById('c-'+id);
   const host=card.querySelector(':scope > div'); // the card body <div> from cardHTML
   let box=host.querySelector(':scope > .cmt');
   if(box){const ta=box.querySelector('.cmt-in');ta.focus();return;}
-  box=commentField(REVIEW.notes[id]||'',v=>{REVIEW.notes[id]=v;applyCardState(card,id);commitReviewChange();},'What should change about this insight? (merge, re-scope, wrong speaker…)');
+  box=commentField(REVIEW.notes[id]||'',v=>{REVIEW.notes[id]=v;applyCardState(card,id);commitReviewChange();},'What should change about this insight? (merge, re-scope, wrong speaker…)',false);
   host.appendChild(box);box.querySelector('.cmt-in').focus();
 }
 function toggleReportNote(btn){
