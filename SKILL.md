@@ -133,7 +133,8 @@ Read the WHOLE transcript first. Then repair the Romanian, restoring the English
 terms the ASR mangled. Heuristics and the glossary cluster format are in
 `references/repair-heuristics.md`; the domain vocabulary is in `assets/glossary.txt`
 (which doubles as the keyterm list to feed the transcriber upstream — prevention as
-well as cure). Romanian and English are the only two languages anyone speaks in these
+well as cure, and which you extend as new sessions surface new terms — see
+**Grow the glossary**). Romanian and English are the only two languages anyone speaks in these
 sessions, so any span the transcriber renders as a *third* language (French, Italian,
 Spanish, etc.) is almost certainly an ASR error, not a real language switch — recover the
 intended Romanian/English from context and repair it (see heuristic 6).
@@ -174,7 +175,7 @@ Record it so it stays reviewable, don't silently rewrite:
   3 real speakers").
 - A confidently-wrong label: just fix it. A **genuinely ambiguous** one: leave your
   best-guess speaker but log it as a **confirm**/**query** entry whose question is *who
-  said this?* (e.g. `["@04:12 „nu merge ușor”", "Cristi or the facilitator?"]`) so it
+  said this?* (e.g. `["@04:12 „nu merge ușor”", "the participant or a facilitator?"]`) so it
   rides the same clarification pass; if an insight leans on that turn, set the idea's
   `needs:true` + `q`.
 - The user's Phase 3 **turn re-attribution** (transcript-line comments) is the correction
@@ -312,6 +313,35 @@ Claude ↑`** in the report and paste the packet (JSON or Markdown), then procee
 The user's in-browser work is never silently lost — it lives in the packet, and the
 rebuilt report reflects it. This is the **You → Claude** review loop the "How this
 works" diagram shows.
+
+## Grow the glossary (compounding across sessions)
+
+`assets/glossary.txt` is the canonical, **growing** keyterm list — it both anchors Phase 1
+repairs and (fed upstream) primes the transcriber so the *next* session comes back
+cleaner. Every session is a chance to enrich it. The names and sessions used throughout
+these references (a participant called Cristi, the "KB export/import" session, etc.) are
+**only examples** — this skill runs on other recordings, other people, other features, and
+other products. Nothing in the glossary or heuristics is tied to one session; treat it all
+as a reusable, accumulating base.
+
+So, as a **closing step** after Phase 1 + the clarification pass have settled the terms:
+
+- **Append newly-confirmed domain terms** that aren't already in `assets/glossary.txt` —
+  product names, feature names, UI labels, recurring people — one canonical term per line
+  (ordering doesn't matter; keep near-duplicates like `chunk` / `chunk-uri` as separate
+  lines if both appear). Only add terms you're confident about (promoted out of
+  `confirm`/`query`, or obvious product vocabulary), never raw garble.
+- **Promote resolved carry-forwards.** When a token that was sitting in
+  `references/repair-heuristics.md` → "Known un-resolved tokens" finally gets resolved in
+  a later session, move it out of that list and into the glossary. Conversely, add any
+  new meaningful-but-unrecoverable token to that carry-forward list so a future session
+  might crack it.
+- **Say what you added.** In your summary, list the terms appended to the glossary so the
+  user knows the shared asset changed (it's the skill's own file — the edit persists for
+  every future session).
+
+This is a deliberate edit to the skill's shared asset, and it's the point: each run makes
+transcription and repair a little better for the next.
 
 ## Asset paths
 

@@ -59,7 +59,7 @@ so errors here cascade into every card.
 6. **Surface what you can't settle.** A confidently-wrong label: fix it silently (it's
    mechanical). A genuinely ambiguous one: keep your best-guess speaker and log it as
    **confirm**/**query** with the question phrased as *who said this?*
-   (`["@04:12 „nu merge ușor”", "Cristi or the facilitator?"]`) so it reaches the user in
+   (`["@04:12 „nu merge ușor”", "the participant or a facilitator?"]`) so it reaches the user in
    the clarification pass; if an insight leans on that turn, mark the idea `needs:true`.
 
 ## Repair-log bucket format
@@ -74,6 +74,11 @@ so errors here cascade into every card.
 
 ## Confirmed FlowX domain vocabulary (seed for clusters + keyterm prompt)
 
+These are **product** terms — reusable across every session whatever the feature or
+participant — mirroring `assets/glossary.txt`, the canonical list that **grows** as new
+sessions surface new vocabulary (see SKILL.md → "Grow the glossary"). When a session
+introduces a new confirmed term, add it to the glossary so the next session benefits.
+
 Knowledge Base / KB · chunk / chunk-uri · entry / entry-uri · store (store → entries →
 chunks) · build / builds · branch / branches · runtime · sandbox · UAT · workspace ·
 query / queries · metadata fields (language, author, is_confidential, topic, locale,
@@ -84,6 +89,12 @@ node / noduri · Kiwi chatbot · Mortgage System / Mortgage Advisor.
 
 ## Known un-resolved tokens (carry forward across sessions)
 
-- **EMEL** — an area Cristi saw near KB export (2026-06-17 session). Never resolved.
-  Does NOT appear in the Cata B workflow-editing session. Still open.
-- **EOR** — a token in the Cata B custom-agent setup line (~11:27). Unrecoverable; in query.
+This list **accumulates** across sessions: tokens that stayed meaningful-but-unrecoverable,
+carried forward so a later session (different participant, different feature) might resolve
+one. Add to it as you go; when a token is finally resolved, promote it into
+`assets/glossary.txt` (see SKILL.md → "Grow the glossary"). The entries below are examples
+from past sessions, not a fixed cast or scenario.
+
+- **EMEL** — an area the participant saw near KB export (a KB export/import session).
+  Never resolved; still open.
+- **EOR** — a token from a later custom-agent setup session (~11:27). Unrecoverable; in query.
