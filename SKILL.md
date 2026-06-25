@@ -331,11 +331,6 @@ So, as a **closing step** after Phase 1 + the clarification pass have settled th
   (ordering doesn't matter; keep near-duplicates like `chunk` / `chunk-uri` as separate
   lines if both appear). Only add terms you're confident about (promoted out of
   `confirm`/`query`, or obvious product vocabulary), never raw garble.
-- **Promote resolved carry-forwards.** When a token that was sitting in
-  `references/repair-heuristics.md` → "Known un-resolved tokens" finally gets resolved in
-  a later session, move it out of that list and into the glossary. Conversely, add any
-  new meaningful-but-unrecoverable token to that carry-forward list so a future session
-  might crack it.
 - **Say what you added.** In your summary, list the terms appended to the glossary so the
   user knows the shared asset changed (it's the skill's own file — the edit persists for
   every future session).

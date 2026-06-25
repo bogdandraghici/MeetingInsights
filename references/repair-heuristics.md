@@ -86,15 +86,3 @@ region) · FlowX Database · Agent Builder · custom agent · REST node · ident
 data transformation · script · condition · parallel · subflow · MCP / MCP Tool / MCP
 server · knowledge base node · input / output · run · chat testing · workflow ·
 node / noduri · Kiwi chatbot · Mortgage System / Mortgage Advisor.
-
-## Known un-resolved tokens (carry forward across sessions)
-
-This list **accumulates** across sessions: tokens that stayed meaningful-but-unrecoverable,
-carried forward so a later session (different participant, different feature) might resolve
-one. Add to it as you go; when a token is finally resolved, promote it into
-`assets/glossary.txt` (see SKILL.md → "Grow the glossary"). The entries below are examples
-from past sessions, not a fixed cast or scenario.
-
-- **EMEL** — an area the participant saw near KB export (a KB export/import session).
-  Never resolved; still open.
-- **EOR** — a token from a later custom-agent setup session (~11:27). Unrecoverable; in query.
