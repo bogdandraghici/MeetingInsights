@@ -113,9 +113,7 @@
   select.filter{font:inherit;font-size:13px;border:1px solid var(--rule);border-radius:8px;padding:7px 10px;background:#fff}
 
   .card{border:1px solid var(--rule);border-radius:12px;background:#fff;padding:16px 16px 14px;margin-bottom:13px;display:grid;grid-template-columns:30px 1fr;gap:13px;box-shadow:0 1px 0 var(--shadow);transition:border-color .15s,box-shadow .15s;cursor:pointer}
-  .card.kept{border-color:var(--green)}
   .card.active{box-shadow:0 0 0 2px var(--mark),0 1px 0 var(--shadow)}
-  .card.kept.active{box-shadow:0 0 0 2px var(--mark),0 0 0 4px rgba(46,111,94,.25)}
   .keep{appearance:none;width:23px;height:23px;border:1.5px solid var(--ink-soft);border-radius:6px;cursor:pointer;position:relative;margin-top:2px;background:#fff;flex:none}
   .keep:checked{background:var(--green);border-color:var(--green)}
   .keep:checked::after{content:"✓";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:700}
@@ -131,7 +129,8 @@
   .conf{font-size:10px;letter-spacing:.05em;text-transform:uppercase;font-weight:700;display:inline-flex;align-items:center;gap:5px;color:var(--ink-soft)}
   .dot{width:8px;height:8px;border-radius:50%;display:inline-block}
   .conf.high .dot{background:var(--green)} .conf.medium .dot{background:var(--amber)} .conf.low .dot{background:var(--mark)}
-  .src{margin-left:auto;font-size:11px;color:var(--mark);font-weight:600;white-space:nowrap}
+  .src{margin-left:auto;font-size:11px;color:var(--mark);font-weight:600;white-space:nowrap;transition:opacity .12s}
+  .card:hover .src,.card.editing .src{opacity:0}
   .src .srcn{color:var(--ink-soft);font-weight:600}
   .detail{margin:0 0 10px;font-size:14.5px}
   .quote{border-left:3px solid var(--rule);padding:7px 0 7px 13px;margin:0 0 4px;font-family:Georgia,serif;font-style:italic;color:#3a372f;font-size:14px}
@@ -162,9 +161,67 @@
   .export.show{display:block}
   .export .row{display:flex;gap:8px;align-items:center;margin-bottom:10px}
   .export textarea{width:100%;height:200px;border:1px solid var(--rule);border-radius:8px;padding:12px;font-family:ui-monospace,Menlo,monospace;font-size:12px;background:var(--paper);resize:vertical}
+  /* review round-trip */
+  .review{display:none;border:1px solid var(--mark);border-radius:12px;background:#fff;padding:16px;margin:0 0 20px}
+  .review.show{display:block}
+  .review .row{display:flex;gap:8px;align-items:center;margin-bottom:10px}
+  .review .lead{font-size:13px;color:var(--ink-soft);margin:0 0 10px}
+  .review textarea{width:100%;height:220px;border:1px solid var(--rule);border-radius:8px;padding:12px;font-family:ui-monospace,Menlo,monospace;font-size:12px;background:var(--paper);resize:vertical}
+  .review-tally{font-size:12px;color:var(--ink-soft)}
+  .review-tally em{color:var(--mark);font-style:normal;font-weight:700}
+  button.send{background:var(--mark);color:#fff;border:none;border-radius:8px;padding:8px 13px;font:inherit;font-size:13px;cursor:pointer}
+  button.send[disabled]{opacity:.45;cursor:default}
   .seg{display:inline-flex;border:1px solid var(--rule);border-radius:8px;overflow:hidden}
   .seg button{background:#fff;border:none;padding:7px 14px;font:inherit;font-size:13px;cursor:pointer}
   .seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+  /* card tools + edit mode */
+  .card{position:relative}
+  .cardtools{position:absolute;top:8px;right:8px;display:flex;gap:4px;z-index:3;
+    background:var(--paper);border:1px solid var(--rule);border-radius:8px;padding:3px;
+    opacity:0;transition:opacity .12s;box-shadow:0 2px 8px var(--shadow)}
+  .card:hover .cardtools{opacity:1}
+  .cardtools button{font:inherit;font-size:11px;line-height:1;border:none;background:none;
+    color:var(--ink-soft);border-radius:5px;padding:5px 7px;cursor:pointer;white-space:nowrap}
+  .cardtools button:hover{background:var(--paper-2);color:var(--ink)}
+  .cardtools button.on{background:var(--mark);color:#fff}
+  .card.editing{box-shadow:0 0 0 2px var(--blue),0 1px 0 var(--shadow)}
+  .card.editing .cardtools{opacity:1}
+  .flags{display:flex;gap:6px;margin-top:9px}
+  .flag{font-size:10px;letter-spacing:.07em;text-transform:uppercase;font-weight:700;
+    border-radius:5px;padding:2px 7px}
+  .flag.edit{background:#E2EBF1;color:#33536F}
+  .flag.note{background:#EDE6D6;color:#7A6320}
+  .card.excluded{opacity:.5}
+  .card.excluded h3,.card.excluded .detail,.card.excluded .quote{text-decoration:line-through;
+    text-decoration-color:var(--mark)}
+  .cmt{margin-top:10px}
+  .cmt-in{width:100%;min-height:54px;border:1px solid var(--amber);border-radius:8px;
+    padding:8px 10px;font:inherit;font-size:13px;background:#FBF7EC;resize:vertical;color:var(--ink)}
+  .cmt-in::placeholder{color:var(--ink-soft)}
+  .mast-cmt{margin:10px 0 0}
+  .mast-note-btn{background:none;border:1px solid var(--rule);border-radius:7px;
+    font:inherit;font-size:12px;padding:4px 10px;cursor:pointer;color:var(--ink-soft)}
+  .mast-note-btn:hover{border-color:var(--ink);color:var(--ink)}
+  .mast-note-btn.on{background:var(--mark);color:#fff;border-color:var(--mark)}
+  .rep{position:relative} .turn{position:relative}
+  .rowtool{position:absolute;top:4px;right:4px;opacity:0;transition:opacity .12s;
+    background:var(--paper);border:1px solid var(--rule);border-radius:6px;
+    font:inherit;font-size:10.5px;color:var(--ink-soft);padding:3px 7px;cursor:pointer;z-index:2}
+  .rep:hover .rowtool,.turn:hover .rowtool{opacity:1}
+  .rowtool.on{background:var(--mark);color:#fff;border-color:var(--mark);opacity:1}
+  .repsec h2{position:relative}
+  .sectool{margin-left:10px;font:inherit;font-size:11px;border:1px solid var(--rule);
+    border-radius:6px;color:var(--ink-soft);padding:2px 8px;cursor:pointer;text-transform:none;letter-spacing:0}
+  .sectool.on{background:var(--mark);color:#fff;border-color:var(--mark)}
+  .cmt.inline{margin:6px 0 2px}
+  .efield[contenteditable="true"]{outline:none;border-bottom:1px dashed var(--blue);
+    background:#F7FAFD;border-radius:3px;padding:0 2px}
+  .card.editing .quote.efield[contenteditable="true"]{background:#F7FAFD}
+  .esel{font:inherit;font-size:12px;border:1px solid var(--rule);border-radius:6px;padding:3px 6px;background:#fff}
+  .echip{display:inline-flex;align-items:center;gap:5px}
+  .echip button{border:none;background:none;color:var(--mark);cursor:pointer;font-size:12px;padding:0 2px}
+  .topic-add{font:inherit;font-size:10.5px;border:1px dashed var(--rule);border-radius:999px;
+    padding:2px 8px;width:120px}
   footer{color:var(--ink-soft);font-size:12px;border-top:1px solid var(--rule);padding:18px 0 50px;margin-top:24px}
   .hidden{display:none!important}
   .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:10px 18px;border-radius:999px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:20}
@@ -194,6 +251,9 @@
       <div><b id="m-rep">0</b><span>repairs</span></div>
       <div><b id="m-query" style="color:var(--mark)">0</b><span>open queries</span></div>
     </div>
+    <div class="mast-cmt">
+      <button class="mast-note-btn" data-act="report-note" onclick="toggleReportNote(this)">💬 Comment on the whole report</button>
+    </div>
   </header>
 
   <nav class="tabs">
@@ -222,10 +282,12 @@
           <button class="ghost act" onclick="selectAll(true)">All</button>
           <button class="ghost act" onclick="selectAll(false)">Clear</button>
           <button class="ghost act conflict-toggle" id="conflictToggle" aria-pressed="false" onclick="toggleConflicts()" title="Show only insights that are in tension with another">⚡ Conflicts</button>
+          <span class="review-tally" id="review-tally" data-tip=""></span>
           <span class="spacer"></span>
           <button class="act" onclick="openExport()">Export kept ↓</button>
+          <button class="send" data-act="send-review" id="sendReview" onclick="openReview()" disabled>Send to Claude ↑</button>
         </div>
-        <p class="hint">Click a card to highlight its source lines — <span style="color:var(--mark)">red bar</span> = first line, <span style="color:var(--green)">green bars</span> = the rest · click a transcript line to jump to its card. Cards start unselected.</p>
+        <p class="hint">Click a card to highlight its source lines — <span style="color:var(--mark)">red bar</span> = first line, <span style="color:var(--green)">green bars</span> = the rest · click a transcript line to jump to its card. All cards are included by default — uncheck one to drop it (it fades out).</p>
         <div class="export" id="exportPanel">
           <div class="row">
             <div class="seg">
@@ -238,6 +300,20 @@
             <button class="ghost act" onclick="closeExport()">Close</button>
           </div>
           <textarea id="outBox" readonly></textarea>
+        </div>
+        <div class="review" id="reviewPanel">
+          <p class="lead">Your edits, comments, and exclusions — paste this back into Claude to rebuild the report. Untouched items are omitted.</p>
+          <div class="row">
+            <div class="seg">
+              <button id="rfmt-json" aria-pressed="true" onclick="setReviewFmt('json')">JSON</button>
+              <button id="rfmt-md" aria-pressed="false" onclick="setReviewFmt('md')">Markdown</button>
+            </div>
+            <span class="spacer"></span>
+            <button class="ghost act" onclick="copyReview()">Copy</button>
+            <button class="act" onclick="downloadReview()">Download</button>
+            <button class="ghost act" onclick="closeReview()">Close</button>
+          </div>
+          <textarea id="reviewBox" readonly></textarea>
         </div>
         <div id="ideas"></div>
       </div>
@@ -260,7 +336,7 @@
       <symbol id="ic-claude" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" d="M20.998 10.949H24v3.102h-3v3.028h-1.487V20H18v-2.921h-1.487V20H15v-2.921H9V20H7.488v-2.921H6V20H4.487v-2.921H3V14.05H0V10.95h3V5h17.998v5.949zM6 10.949h1.488V8.102H6v2.847zm10.51 0H18V8.102h-1.49v2.847z"/></symbol>
     </svg>
     <div class="how">
-      <p class="hint">From a raw recording to insights in Notion — a back-and-forth between you and Claude. The first steps run inside this tool today; the rest are planned and not yet built.</p>
+      <p class="hint">From a raw recording to insights in Notion — a back-and-forth between you and Claude. The review loop now runs inside this tool too; only the final Notion publish is planned and not yet built.</p>
       <div class="flow-legend">
         <span class="actor human"><svg><use href="#ic-human"/></svg> You</span> bring the material and make the calls
         <span style="color:var(--rule);font-weight:600">·</span>
@@ -308,29 +384,29 @@
         </div>
       </div>
 
-      <div class="next-rule"><div class="line"></div><span class="lbl">Next · planned, not yet built</span><div class="line"></div></div>
-
-      <div class="lane-row future">
+      <div class="lane-row">
         <div class="l">
           <div class="lane-card">
             <div class="ch"><span class="actor human"><svg><use href="#ic-human"/></svg> You</span><h4>Review, edit &amp; classify</h4></div>
-            <p>You go through the cards — keep or cut, tweak the wording, and answer the open queries where the transcript was unclear. Then sort them by destination, keeping design-experiment ideas separate from current-state observations, since those live in different databases.</p>
+            <p>You go through the cards — keep or drop, tweak the wording, and answer the open queries where the transcript was unclear. Then sort them by destination, keeping design-experiment ideas separate from current-state observations, since those live in different databases.</p>
           </div>
         </div>
         <div class="spine"><div class="seg bot"></div><div class="avatar you"><svg><use href="#ic-human"/></svg></div></div>
         <div class="r"></div>
       </div>
 
-      <div class="lane-row future">
+      <div class="lane-row">
         <div class="l"></div>
         <div class="spine"><div class="seg top"></div><div class="seg bot"></div><div class="avatar claude"><svg><use href="#ic-claude"/></svg></div></div>
         <div class="r">
           <div class="lane-card">
             <div class="ch"><span class="actor claude"><svg><use href="#ic-claude"/></svg> Claude</span><h4>Folds in your changes</h4></div>
-            <p>Claude reads your edits, classifications, and answers, then updates the insights — resolving the queries you settled and tagging each one with its target database.</p>
+            <p>Claude reads your edits, comments, and exclusions from the packet you send back, then rebuilds the report with them folded in — resolving open queries and dropping excluded cards.</p>
           </div>
         </div>
       </div>
+
+      <div class="next-rule"><div class="line"></div><span class="lbl">Next · planned, not yet built</span><div class="line"></div></div>
 
       <div class="lane-row future">
         <div class="l"></div>
@@ -358,7 +434,7 @@ const TURNS = [
  ["P","00:51","Nu știu exact motivul, dar prima dată când intri pe un mediu primește eroarea asta, adică îți dă fail."],
  ["B","01:03","Și niciodată nu știu de la ce — îi dau un refresh și până la urmă merge."],
  ["F","01:13","Nu contează unde ești — poți să te duci în orice workspace. De unde te-ai aștepta să poți da export content pentru un KB, din zona de config?"],
- ["P","01:37","Am două opțiuni. Ori intru aici — cred că asta e prima opțiune în capul meu — ori a doua, care nu-i valabilă: acolo ar fi doar insert. Mă gândeam la zona asta de runtime. Văd că s-a adăugat și zona asta de <span class='unsure' title='Phase-1 query: what is EMEL?'>EMEL</span>."],
+ ["P","01:37","Am două opțiuni. Ori intru aici — cred că asta e prima opțiune în capul meu — ori a doua, care nu-i valabilă: acolo ar fi doar insert. Mă gândeam la zona asta de runtime. Văd că s-a adăugat și zona asta de ML."],
  ["F","02:04","Sunt mai multe prototipuri pe mediul ăsta. Caută unde ai zis prima dată."],
  ["P","02:12","Să zicem că e ăsta: „export definition” și „content”, sunt separate. Ok, deci ar fi unde mă așteptam."],
  ["F","02:39","Să zicem că vrei să-l duci în zona de runtime, pe un alt workspace — sau poți pe același workspace."],
@@ -446,10 +522,10 @@ const IDEAS = [
   detail:"For a sandbox→production content move, the “used by builds” info isn’t what the user needs; it’s tied to build/branch and role context they don’t reach for here.",
   quote:"Zona de „used by builds” nu-mi dau seama… în production foarte rar m-aș aștepta.",
   speaker:"P",confidence:"medium",needs:false,anchors:[17,26],topics:["Validation & usage", "Team & environments"]},
- {id:"idea-04",title:"Rename “Delete” → “Delete content”",category:"naming_copy",
-  detail:"Delete is ambiguous (content vs definition) and overlaps with replace; agreed to keep it but label it specifically.",
-  quote:"are sens să-l lăsăm, dar să fim mai specifici: „delete content”.",
-  speaker:"B",confidence:"high",needs:false,anchors:[36,37],topics:["Naming & labels"]},
+ {id:"idea-04",title:"“Delete” is ambiguous — Cristi expects it to clear content for a fresh load",category:"naming_copy",
+  detail:"Cristi flagged “Delete” as ambiguous between content and definition, and described its real value: wiping old content for a fresh load — same end as replace, but guaranteeing an empty target. The agreed fix (Bogdan’s proposal) is to label it “delete content”.",
+  quote:"Te-ar ajuta să ștergi conținutul dacă ai content vechi și vrei unul nou. E aceeași chestie cu replace, dar dacă vrei să te asiguri că e gol…",
+  speaker:"P",confidence:"high",needs:false,anchors:[34,35,36,37],topics:["Naming & labels"]},
  {id:"idea-05",title:"“View Details” shows name + description; user expected configuration",category:"naming_copy",
   detail:"Expectation mismatch: Cristi expected to see the config there, but it shows only name + description. Also a question on whether the capital “D” styling is intentional; agreed it should match the config one.",
   quote:"„View Details”… aici aș vedea configurarea KB-ului. — [Arată] doar numele și descrierea.",
@@ -474,11 +550,10 @@ const IDEAS = [
   detail:"The same content added on FlowX Database produces no warnings because its content lacks the clear rules/limits metadata has — an inconsistency to be aware of.",
   quote:"pe FlowX Database… nu sunt genul ăsta de warning-uri, pentru că content-ul nu are reguli foarte clare cum au metadatele.",
   speaker:"F",confidence:"medium",needs:false,anchors:[74],topics:["Removed-content warnings", "Team & environments"]},
- {id:"idea-11",title:"Export discoverability — and an unexplained “EMEL” area",category:"feature_request",
-  detail:"Cristi weighed config vs runtime before settling on the export entry point, and noticed a newly-added area he couldn’t identify.",
-  quote:"Mă gândeam la zona asta de runtime. Văd că s-a adăugat și zona asta de EMEL.",
-  speaker:"P",confidence:"medium",needs:true,anchors:[6,8],topics:["Export / import"],
-  q:"What is the “EMEL” area Cristi saw added near export? Not recoverable from audio — confirm the real tab name."},
+ {id:"idea-11",title:"Export discoverability — and a newly-added ML area",category:"feature_request",
+  detail:"Cristi weighed config vs runtime before settling on the export entry point, and noticed a newly-added ML area near it.",
+  quote:"Mă gândeam la zona asta de runtime. Văd că s-a adăugat și zona asta de ML.",
+  speaker:"P",confidence:"medium",needs:false,anchors:[6,8],topics:["Export / import"]},
  {id:"idea-12",title:"First-entry environment error (known hard-refresh flake)",category:"open_question",
   detail:"An error sometimes appears the first time you enter an environment; a hard refresh clears it. Pre-existing infra quirk, not this feature — flagged so it isn’t mistaken for a finding.",
   quote:"prima dată când intri pe un mediu primește eroarea asta… îi dau un refresh și merge.",
@@ -519,6 +594,7 @@ const REPAIRS = {
     ["ice-tu have","nice to have"],
     ["mandeteri","mandatory"],
     ["polisaver ights · polic","policy overrides"],
+    ["EMEL","ML (Machine Learning) — letters „M-L” misheard"],
     ["Veți voi · Necesi aș me · O zi fain. Să.","__DROP__"]
   ],
   confirm:[
@@ -528,7 +604,6 @@ const REPAIRS = {
     ["damboulea … înainte cu tupeu","dă-i înainte cu tupeu  (barrel ahead anyway)"]
   ],
   query:[
-    ["zona asta de EMEL","New area Cristi saw near export — what is „EMEL”?"],
     ["e un ucuit (02:51)","Unrecoverable — what was said?"],
     ["Folosim op dat-o… niște nalșbăies create (01:17)","Observer line, fully garbled — what was said?"]
   ]
@@ -536,6 +611,9 @@ const REPAIRS = {
 
 const turnToIdeas={};
 IDEAS.forEach(it=>it.anchors.forEach(a=>{(turnToIdeas[a]=turnToIdeas[a]||[]).push(it.id);}));
+const ORIG={};IDEAS.forEach(it=>{ORIG[it.id]=it;});
+const REVIEW={edits:{},notes:{},repairComments:{},repairSectionNote:"",turnComments:{},reportNote:""};
+function effective(it){return Object.assign({},it,REVIEW.edits[it.id]||{});}
 const SPK={P:"Cristi",F:"Facil.",B:"Bogdan",O:"Obs."};
 
 // Session provenance — flattened onto every exported insight so each one is
@@ -549,28 +627,33 @@ TURNS.forEach((t,i)=>{
   d.id='t-'+i;
   d.innerHTML=`<div class="meta-r"><span class="spk">${SPK[t[0]]}</span><span class="ts mono">${t[1]}</span></div><span class="txt">${t[2]}</span>`;
   if(turnToIdeas[i]) d.addEventListener('click',e=>{ if(e.target.classList.contains('unsure'))return; locate(turnToIdeas[i][0],true); });
+  const btn=document.createElement('button');btn.className='rowtool';btn.textContent='💬';
+  btn.title='Comment on this line';
+  btn.addEventListener('click',e=>{e.stopPropagation();toggleTurnComment(i,d);});
+  d.appendChild(btn);
   scriptEl.appendChild(d);
 });
 
-const kept=new Set();
+const kept=new Set(IDEAS.map(i=>i.id)); // all cards included by default
 const ideasEl=document.getElementById('ideas');
 function titleOf(id){const x=IDEAS.find(i=>i.id===id);return x?x.title:id;}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function cardHTML(it){
   const q=it.needs?`<div class="query"><b>?</b><div><b>Needs confirmation — </b>${it.q}</div></div>`:'';
   const src=TURNS[it.anchors[0]][1];
   const nturns=it.anchors.length>1?`<span class="srcn"> · ${it.anchors.length} lines</span>`:'';
-  const topics=(it.topics&&it.topics.length)?`<div class="topics">${it.topics.map(t=>`<span class="topic">${t}</span>`).join('')}</div>`:'';
+  const topics=(it.topics&&it.topics.length)?`<div class="topics">${it.topics.map(t=>`<span class="topic">${esc(t)}</span>`).join('')}</div>`:'';
   const tension=(it.conflictsWith&&it.conflictsWith.length)?`<div class="tension"><span class="tlabel">⚡ In tension with</span>${it.conflictsWith.map(cid=>`<button class="tlink" onclick="event.stopPropagation();locate('${cid}',true)">${titleOf(cid)}</button>`).join('')}</div>`:'';
-  return `<input type="checkbox" class="keep" onchange="toggle('${it.id}',this.checked)" onclick="event.stopPropagation()" aria-label="keep">
+  return `<input type="checkbox" class="keep"${kept.has(it.id)?' checked':''} onchange="toggle('${it.id}',this.checked)" onclick="event.stopPropagation()" aria-label="keep">
     <div>
       <div class="tagrow">
         <span class="tag ${it.category}">${it.category.replace('_',' ')}</span>
         <span class="conf ${it.confidence}"><span class="dot"></span>${it.confidence}</span>
         <span class="src">⌖ ${src}${nturns}</span>
       </div>
-      <h3>${it.title}</h3>
-      <p class="detail">${it.detail}</p>
-      <blockquote class="quote">“${it.quote}”</blockquote>
+      <h3>${esc(it.title)}</h3>
+      <p class="detail">${esc(it.detail)}</p>
+      <blockquote class="quote">“${esc(it.quote)}”</blockquote>
       <div class="who">${SPK[it.speaker]==='Facil.'?'Facilitator':SPK[it.speaker]}</div>
       ${q}
       ${tension}
@@ -585,10 +668,11 @@ IDEAS.forEach(it=>{
   card.className='card';card.id='c-'+it.id;card.dataset.cat=it.category;
   card.dataset.topics=(it.topics||[]).join('|');
   card.dataset.conflict=conflictIds.has(it.id)?'1':'';
-  card.innerHTML=cardHTML(it);
-  card.addEventListener('click',()=>locate(it.id,false));
+  card.addEventListener('click',()=>{if(card.classList.contains('editing'))return;locate(it.id,false);});
   ideasEl.appendChild(card);
+  rerenderCard(it.id);
 });
+refresh(); // seed kept counters (all cards included by default)
 
 // category + topic filters (ANDed)
 const cats=['all',...new Set(IDEAS.map(i=>i.category))];
@@ -617,7 +701,18 @@ function repSection(title,arr,bucket){
     const fix=f==='__DROP__'?`<span class="fix drop mono">[dropped — fragments]</span>`:`<span class="fix mono">${f}</span>`;
     return `<div class="rep"><span class="b ${bucket}">${bucket}</span><span class="orig mono">${o}</span><span class="arrow">→</span>${fix}</div>`;
   }).join('');
-  sec.innerHTML=`<h2>${title}</h2>${rows}`;repEl.appendChild(sec);
+  sec.innerHTML=`<h2>${title} <button class="sectool" data-bucket="${bucket}">💬 comment on this section</button></h2>${rows}`;
+  repEl.appendChild(sec);
+  // section comment
+  sec.querySelector('.sectool').addEventListener('click',e=>toggleSectionComment(bucket,sec));
+  // per-row comment tools
+  sec.querySelectorAll('.rep').forEach((row,i)=>{
+    const orig=arr[i][0];
+    const btn=document.createElement('button');btn.className='rowtool';btn.textContent='💬';
+    btn.title='Comment on this repair';
+    btn.addEventListener('click',()=>toggleRepairComment(bucket,orig,row));
+    row.appendChild(btn);
+  });
 }
 repSection('Applied confidently',REPAIRS.auto,'auto');
 repSection('Best guess — confirm',REPAIRS.confirm,'confirm');
@@ -671,11 +766,11 @@ function jumpEdge(dir){
   sc.addEventListener('scroll',()=>{if(!raf)raf=requestAnimationFrame(tick);},{passive:true});
   addEventListener('resize',()=>{if(!raf)raf=requestAnimationFrame(tick);});})();
 
-function toggle(id,on){on?kept.add(id):kept.delete(id);document.getElementById('c-'+id).classList.toggle('kept',on);refresh();}
+function toggle(id,on){on?kept.add(id):kept.delete(id);document.getElementById('c-'+id).classList.toggle('excluded',!on);refresh();commitReviewChange();}
 function refresh(){document.getElementById('kept-n').textContent=kept.size;document.getElementById('m-kept').textContent=kept.size;
   if(document.getElementById('exportPanel').classList.contains('show'))renderOut();}
 function selectAll(on){document.querySelectorAll('.card').forEach(card=>{ if(card.style.display==='none')return;
-  const cb=card.querySelector('.keep');cb.checked=on;const id=card.id.slice(2);on?kept.add(id):kept.delete(id);card.classList.toggle('kept',on);});refresh();}
+  const cb=card.querySelector('.keep');cb.checked=on;const id=card.id.slice(2);on?kept.add(id):kept.delete(id);card.classList.toggle('excluded',!on);});refresh();commitReviewChange();}
 function showTab(t){['ideas','rep','how'].forEach(name=>{
   document.getElementById('view-'+name).classList.toggle('hidden',name!==t);
   document.getElementById('tab-'+name).setAttribute('aria-selected',name===t);});}
@@ -702,6 +797,233 @@ function toMd(){const list=keptList();if(!list.length)return "# Nothing kept yet
 function copyOut(){const t=document.getElementById('outBox');t.select();navigator.clipboard.writeText(t.value).then(()=>toast('Copied'));}
 function downloadOut(){const blob=new Blob([document.getElementById('outBox').value],{type:fmt==='md'?'text/markdown':'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='kept-ideas.'+(fmt==='md'?'md':'json');a.click();URL.revokeObjectURL(a.href);toast('Downloaded');}
+// ---- Review round-trip ----
+const CATS=['pain_point','feature_request','naming_copy','design_decision','design_insight','open_question','context'];
+const CONFS=['high','medium','low'];
+function nonEmpty(s){return typeof s==='string'&&s.trim().length>0;}
+function changedFields(id){
+  const e=REVIEW.edits[id];if(!e)return{};const o=ORIG[id],out={};
+  for(const k in e){const a=k==='topics'?(o.topics||[]):o[k];
+    if(JSON.stringify(a)!==JSON.stringify(e[k]))out[k]=e[k];}
+  return out;
+}
+function buildPacket(){
+  const cards=[];
+  IDEAS.forEach(it=>{
+    const ch=changedFields(it.id),note=REVIEW.notes[it.id],excluded=!kept.has(it.id);
+    const hasEdit=Object.keys(ch).length>0;
+    if(hasEdit||excluded||nonEmpty(note)){const c={id:it.id};
+      if(excluded)c.excluded=true;if(hasEdit)c.edits=ch;if(nonEmpty(note))c.note=note.trim();cards.push(c);}
+  });
+  const repairs=[];
+  Object.keys(REVIEW.repairComments).forEach(key=>{const cm=REVIEW.repairComments[key];
+    if(!nonEmpty(cm))return;const ix=key.indexOf('\t');
+    repairs.push({bucket:key.slice(0,ix),orig:key.slice(ix+1),comment:cm.trim()});});
+  const turns=[];
+  Object.keys(REVIEW.turnComments).forEach(i=>{const cm=REVIEW.turnComments[i];
+    if(nonEmpty(cm))turns.push({i:+i,comment:cm.trim()});});
+  const p={session:SESSION.id};
+  if(nonEmpty(REVIEW.reportNote))p.report_note=REVIEW.reportNote.trim();
+  if(cards.length)p.cards=cards;
+  if(repairs.length)p.repairs=repairs;
+  if(nonEmpty(REVIEW.repairSectionNote))p.repair_section_note=REVIEW.repairSectionNote.trim();
+  if(turns.length)p.turns=turns;
+  return p;
+}
+function packetCounts(){
+  let edits=0,comments=0,excluded=0;
+  IDEAS.forEach(it=>{if(Object.keys(changedFields(it.id)).length)edits++;
+    if(!kept.has(it.id))excluded++;if(nonEmpty(REVIEW.notes[it.id]))comments++;});
+  Object.values(REVIEW.repairComments).forEach(c=>{if(nonEmpty(c))comments++;});
+  Object.values(REVIEW.turnComments).forEach(c=>{if(nonEmpty(c))comments++;});
+  if(nonEmpty(REVIEW.repairSectionNote))comments++;
+  if(nonEmpty(REVIEW.reportNote))comments++;
+  return {edits,comments,excluded};
+}
+function renderTally(){
+  const {edits,comments,excluded}=packetCounts();
+  const parts=[];
+  parts.push(`<em>${edits}</em> edit${edits===1?'':'s'}`);
+  parts.push(`<em>${comments}</em> comment${comments===1?'':'s'}`);
+  parts.push(`<em>${excluded}</em> excluded`);
+  document.getElementById('review-tally').innerHTML=parts.join(' · ');
+  document.getElementById('sendReview').disabled=(edits+comments+excluded===0);
+}
+function commitReviewChange(){renderTally();
+  if(document.getElementById('reviewPanel').classList.contains('show'))renderReview();}
+let rfmt='json';
+function packetToMd(p){
+  let o=`# Review for ${p.session}\n`;
+  if(p.report_note)o+=`\n**Report note:** ${p.report_note}\n`;
+  (p.cards||[]).forEach(c=>{o+=`\n## ${c.id}${c.excluded?' — EXCLUDED':''}\n`;
+    if(c.edits)for(const k in c.edits)o+=`- edit \`${k}\` → ${JSON.stringify(c.edits[k])}\n`;
+    if(c.note)o+=`- note: ${c.note}\n`;});
+  if(p.repairs&&p.repairs.length){o+=`\n## Repairs\n`;
+    p.repairs.forEach(r=>{o+=`- [${r.bucket}] \`${r.orig}\` — ${r.comment}\n`;});}
+  if(p.repair_section_note)o+=`\n**Repair-log note:** ${p.repair_section_note}\n`;
+  if(p.turns&&p.turns.length){o+=`\n## Transcript\n`;
+    p.turns.forEach(t=>{o+=`- turn ${t.i} (${TURNS[t.i]?TURNS[t.i][1]:'?'}): ${t.comment}\n`;});}
+  return o;
+}
+function renderReview(){const p=buildPacket();
+  document.getElementById('reviewBox').value=rfmt==='json'?JSON.stringify(p,null,2):packetToMd(p);}
+function openReview(){document.getElementById('reviewPanel').classList.add('show');renderReview();
+  document.getElementById('reviewPanel').scrollIntoView({behavior:'smooth',block:'nearest'});}
+function closeReview(){document.getElementById('reviewPanel').classList.remove('show');}
+function setReviewFmt(f){rfmt=f;document.getElementById('rfmt-json').setAttribute('aria-pressed',f==='json');
+  document.getElementById('rfmt-md').setAttribute('aria-pressed',f==='md');renderReview();}
+function copyReview(){const t=document.getElementById('reviewBox');t.select();
+  navigator.clipboard.writeText(t.value).then(()=>toast('Copied'));}
+function downloadReview(){const ext=rfmt==='json'?'json':'md';
+  const blob=new Blob([document.getElementById('reviewBox').value],
+    {type:rfmt==='json'?'application/json':'text/markdown'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='review-'+SESSION.id+'.'+ext;a.click();URL.revokeObjectURL(a.href);toast('Downloaded');}
+renderTally();
+function rerenderCard(id){
+  const it=IDEAS.find(x=>x.id===id);const card=document.getElementById('c-'+id);
+  card.classList.remove('editing');
+  card.innerHTML=cardHTML(effective(it));
+  attachCardTools(card,it);applyCardState(card,id);
+}
+function applyCardState(card,id){
+  const edited=Object.keys(changedFields(id)).length>0;
+  card.classList.toggle('has-edit',edited);
+  card.classList.toggle('has-note',nonEmpty(REVIEW.notes[id]));
+  card.classList.toggle('excluded',!kept.has(id));
+  const body=card.querySelector(':scope > div:not(.cardtools)'); // the <div> from cardHTML
+  let flags=card.querySelector('.flags');if(flags)flags.remove();
+  const tags=[];
+  if(edited)tags.push('<span class="flag edit">edited</span>');
+  if(nonEmpty(REVIEW.notes[id]))tags.push('<span class="flag note">comment</span>');
+  if(tags.length){const f=document.createElement('div');f.className='flags';
+    f.innerHTML=tags.join('');body.appendChild(f);}
+}
+function attachCardTools(card,it){
+  const t=document.createElement('div');t.className='cardtools';
+  t.innerHTML=`<button data-t="edit">✎ Edit</button><button data-t="comment">💬 Comment</button>`;
+  t.querySelectorAll('button').forEach(b=>b.addEventListener('click',e=>{
+    e.stopPropagation();const k=b.dataset.t;
+    if(k==='edit')enterEdit(it.id);
+    else if(k==='comment')toggleCardComment(it.id);}));
+  card.appendChild(t);
+}
+function enterEdit(id){
+  const it=IDEAS.find(x=>x.id===id);const card=document.getElementById('c-'+id);
+  // compute effective BEFORE assigning undefined-keyed edit object (Object.assign copies undefineds)
+  const eff=effective(it);
+  const e=REVIEW.edits[id]=Object.assign({title:undefined,detail:undefined,quote:undefined,
+    category:undefined,confidence:undefined,topics:undefined},REVIEW.edits[id]||{});
+  // seed from effective values
+  ['title','detail','quote','category','confidence'].forEach(k=>{if(e[k]===undefined)e[k]=eff[k];});
+  if(e.topics===undefined)e.topics=(eff.topics||[]).slice();
+  card.classList.add('editing');
+  card.innerHTML=cardEditHTML(it,e);
+  // tool cluster shows Done
+  const t=document.createElement('div');t.className='cardtools';
+  t.innerHTML=`<button data-t="done" class="on">✓ Done</button>`;
+  t.querySelector('button').addEventListener('click',ev=>{ev.stopPropagation();commitEdit(id);});
+  card.appendChild(t);
+  wireEdit(card,id);
+}
+function cardEditHTML(it,e){
+  const src=TURNS[it.anchors[0]][1];
+  const catOpts=CATS.map(c=>`<option value="${c}"${c===e.category?' selected':''}>${c.replace('_',' ')}</option>`).join('');
+  const confOpts=CONFS.map(c=>`<option value="${c}"${c===e.confidence?' selected':''}>${c}</option>`).join('');
+  const chips=(e.topics||[]).map((tp,i)=>`<span class="topic echip" data-i="${i}">${tp}<button data-rm="${i}">×</button></span>`).join('');
+  return `<input type="checkbox" class="keep" disabled${kept.has(it.id)?' checked':''} aria-label="keep">
+    <div>
+      <div class="tagrow">
+        <select class="esel" data-f="category">${catOpts}</select>
+        <select class="esel" data-f="confidence">${confOpts}</select>
+        <span class="src">⌖ ${src}</span>
+      </div>
+      <h3 class="efield" contenteditable="true" data-f="title">${e.title}</h3>
+      <p class="detail efield" contenteditable="true" data-f="detail">${e.detail}</p>
+      <blockquote class="quote efield" contenteditable="true" data-f="quote">${e.quote}</blockquote>
+      <div class="topics" data-topics-edit>${chips}<input class="topic-add" placeholder="+ topic" /></div>
+    </div>`;
+}
+function wireEdit(card,id){
+  const e=REVIEW.edits[id];
+  card.querySelectorAll('.efield').forEach(el=>{
+    el.addEventListener('click',ev=>ev.stopPropagation());
+    el.addEventListener('input',()=>{e[el.dataset.f]=el.textContent;commitReviewChange();});});
+  card.querySelectorAll('.esel').forEach(sel=>{
+    sel.addEventListener('click',ev=>ev.stopPropagation());
+    sel.addEventListener('change',()=>{e[sel.dataset.f]=sel.value;commitReviewChange();});});
+  const tw=card.querySelector('[data-topics-edit]');
+  tw.addEventListener('click',ev=>{ev.stopPropagation();
+    const rm=ev.target.getAttribute('data-rm');
+    if(rm!==null){e.topics.splice(+rm,1);redrawTopics(card,id);commitReviewChange();}});
+  const add=tw.querySelector('.topic-add');
+  add.addEventListener('keydown',ev=>{ev.stopPropagation();
+    if(ev.key==='Enter'&&nonEmpty(add.value)){e.topics.push(add.value.trim());add.value='';
+      redrawTopics(card,id);commitReviewChange();}});
+}
+function redrawTopics(card,id){
+  const e=REVIEW.edits[id],tw=card.querySelector('[data-topics-edit]');
+  const chips=(e.topics||[]).map((tp,i)=>`<span class="topic echip" data-i="${i}">${tp}<button data-rm="${i}">×</button></span>`).join('');
+  tw.innerHTML=chips+'<input class="topic-add" placeholder="+ topic" />';
+  const add=tw.querySelector('.topic-add');
+  add.addEventListener('keydown',ev=>{ev.stopPropagation();
+    if(ev.key==='Enter'&&nonEmpty(add.value)){e.topics.push(add.value.trim());add.value='';
+      redrawTopics(card,id);commitReviewChange();}});
+}
+function commitEdit(id){
+  // prune unchanged fields so the packet only carries real edits
+  const ch=changedFields(id);
+  if(Object.keys(ch).length===0)delete REVIEW.edits[id];else REVIEW.edits[id]=ch;
+  rerenderCard(id);commitReviewChange();
+}
+function commentField(initial,onChange,placeholder){
+  const wrap=document.createElement('div');wrap.className='cmt';
+  const ta=document.createElement('textarea');ta.className='cmt-in';
+  ta.value=initial||'';ta.placeholder=placeholder||'Comment for Claude…';
+  ta.addEventListener('click',e=>e.stopPropagation());
+  ta.addEventListener('input',()=>onChange(ta.value));
+  wrap.appendChild(ta);return wrap;
+}
+function toggleCardComment(id){
+  const card=document.getElementById('c-'+id);
+  const host=card.querySelector(':scope > div'); // the card body <div> from cardHTML
+  let box=host.querySelector(':scope > .cmt');
+  if(box){const ta=box.querySelector('.cmt-in');ta.focus();return;}
+  box=commentField(REVIEW.notes[id]||'',v=>{REVIEW.notes[id]=v;applyCardState(card,id);commitReviewChange();},'What should change about this insight? (merge, re-scope, wrong speaker…)');
+  host.appendChild(box);box.querySelector('.cmt-in').focus();
+}
+function toggleReportNote(btn){
+  const host=btn.parentElement;let box=host.querySelector('.cmt');
+  if(box){box.querySelector('.cmt-in').focus();return;}
+  box=commentField(REVIEW.reportNote,v=>{REVIEW.reportNote=v;
+    btn.classList.toggle('on',nonEmpty(v));commitReviewChange();},
+    'Overall direction: too many cards, wrong framing, merge these two…');
+  host.appendChild(box);box.querySelector('.cmt-in').focus();
+}
+function repairKey(bucket,orig){return bucket+'\t'+orig;}
+function toggleRepairComment(bucket,orig,row){
+  let box=row.querySelector(':scope > .cmt');
+  if(box){box.querySelector('.cmt-in').focus();return;}
+  const key=repairKey(bucket,orig);const btn=row.querySelector('.rowtool');
+  box=commentField(REVIEW.repairComments[key]||'',v=>{REVIEW.repairComments[key]=v;
+    btn.classList.toggle('on',nonEmpty(v));commitReviewChange();},'Comment on this repair (e.g. leave as-is, wrong fix)…');
+  box.classList.add('inline');row.appendChild(box);box.querySelector('.cmt-in').focus();
+  btn.classList.toggle('on',nonEmpty(REVIEW.repairComments[key]));
+}
+function toggleSectionComment(bucket,sec){
+  let box=sec.querySelector(':scope > .cmt');const btn=sec.querySelector('.sectool');
+  if(box){box.querySelector('.cmt-in').focus();return;}
+  box=commentField(REVIEW.repairSectionNote,v=>{REVIEW.repairSectionNote=v;
+    btn.classList.toggle('on',nonEmpty(v));commitReviewChange();},'Comment on the repair log as a whole…');
+  box.classList.add('inline');sec.appendChild(box);box.querySelector('.cmt-in').focus();
+}
+function toggleTurnComment(i,turn){
+  let box=turn.querySelector(':scope > .cmt');const btn=turn.querySelector('.rowtool');
+  if(box){box.querySelector('.cmt-in').focus();return;}
+  box=commentField(REVIEW.turnComments[i]||'',v=>{REVIEW.turnComments[i]=v;
+    btn.classList.toggle('on',nonEmpty(v));commitReviewChange();},'Comment on this line (e.g. wrong speaker, misattributed)…');
+  box.classList.add('inline');turn.appendChild(box);box.querySelector('.cmt-in').focus();
+}
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1400);}
 </script>
 </body>

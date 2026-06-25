@@ -85,7 +85,16 @@ The regions you may change:
 Everything else — the three pill tabs (Ideas + transcript / Repair log / How this
 works), the sticky transcript pane, card structure, the glossary-cluster repair log, the
 category **and topic** filters, export panel, footer, responsive rules — is part of the
-template and stays. The **How this works** tab (`<section id="view-how">`) is a static
+template and stays. Also protected now: the **review round-trip** machinery — the hover action
+buttons on cards/repairs/turns/masthead (`✎ Edit` / `💬 Comment`), the
+in-place edit fields, the comment boxes, the **keep checkbox** (every card starts
+**checked/included**; unchecking it excludes the card — the card fades out and is struck
+through to make clear it won't be included, and it drops out of both the export and the
+review packet), the toolbar edits/comments/excluded tally, and the `Send to Claude ↑`
+packet panel (`#reviewPanel`, `buildPacket`). These are part of the template; preserve
+them byte-for-byte like the tabs and filters. They are pure presentation/serialization —
+never session data.
+The **How this works** tab (`<section id="view-how">`) is a static
 **two-lane handoff** diagram (imported from the "Human-Claude collaboration tool" Claude
 Design project, Option A): **you** (blue person badge, left lane) and **Claude** (clay,
 right lane, the real Claude glyph) in facing lanes, work crossing a central spine at each
@@ -233,6 +242,35 @@ resolutions folded in (same drift-free Build method below — recopy the templat
 the data blocks, re-run validation). Mention what changed (e.g. counts moved from
 `query`/`confirm` into `auto`, open-queries metric dropped). If the user skipped
 everything, say so and leave the report as-is rather than rebuilding needlessly.
+
+## Phase 3 — Fold in review
+
+After the report is delivered, the user can edit insight-card fields, comment on
+any section, and exclude cards (by unchecking them) directly in the HTML, then hit **`Send to Claude ↑`** to
+produce a **review packet** (JSON by default; Markdown mirror). When the user pastes
+one back:
+
+1. Parse it. Confirm `session` matches the report you built. The packet carries only
+   what changed — untouched cards/repairs/turns are omitted. An **empty packet**
+   (just `{session}`) means no changes: say so and leave the report as-is.
+2. Apply it onto the working data:
+   - `cards[].edits` — overwrite those exact fields on the matching `IDEAS` entry
+     (`title`, `detail`, `quote`, `category`, `confidence`, `topics`).
+   - `cards[].excluded:true` — the user unchecked that card; drop the idea entirely.
+   - `cards[].note`, `report_note` — treat as instructions; they may direct merges,
+     re-scoping, re-attribution, or wording the raw field edits can't express.
+   - `repairs[]` (keyed by `bucket` + the garbled `orig` string) — act on the repair
+     comment (fix it, leave it, re-bucket it).
+   - `repair_section_note`, `turns[].comment` (keyed by transcript index `i`) —
+     fold in re-attributions and repair-log direction.
+3. Rebuild the HTML with the **same drift-free Build method** below — recopy
+   `assets/template.html`, re-emit the data blocks, re-run validation.
+4. Summarize what changed (e.g. "applied 3 edits, dropped idea-11, re-attributed
+   turn 9 to B, merged idea-05 into idea-04").
+
+The user's in-browser work is never silently lost — it lives in the packet, and the
+rebuilt report reflects it. This is the **You → Claude** review loop the "How this
+works" diagram shows.
 
 ## Asset paths
 
