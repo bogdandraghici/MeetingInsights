@@ -34,16 +34,10 @@
   .tab[aria-selected="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
 
   /* How this works — two-lane handoff (You ⇄ Claude across a central spine) */
-  .how{max-width:860px}
-  .flow-legend{display:flex;flex-wrap:wrap;align-items:center;gap:9px;font-size:14px;color:var(--ink-soft);margin:16px 0 4px}
-  .flow-phase{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--green);font-weight:700;margin:26px 0 14px}
-  .lane-heads,.lane-row{display:grid;grid-template-columns:1fr 56px 1fr;align-items:center}
-  .lane-heads{margin-bottom:6px}
-  .lane-heads .l,.lane-row .l{display:flex;justify-content:flex-end}
-  .lane-heads .r,.lane-row .r{display:flex;justify-content:flex-start}
-  .lane-pill{display:inline-flex;align-items:center;gap:7px;border-radius:10px;padding:8px 14px;font-weight:700;font-size:12px;letter-spacing:.1em;text-transform:uppercase}
-  .lane-pill svg{width:15px;height:15px;fill:currentColor;display:block}
-  .lane-pill.you{background:#E7ECF1;color:#3C5871} .lane-pill.claude{background:#F6E1D7;color:#B4542F}
+  .how{max-width:1040px}
+  .lane-row{display:grid;grid-template-columns:1fr 56px 1fr;align-items:center}
+  .lane-row .l{display:flex;justify-content:flex-end}
+  .lane-row .r{display:flex;justify-content:flex-start}
   .next-rule{display:flex;align-items:center;gap:14px;margin:10px 0 6px}
   .next-rule .line{flex:1;border-top:1px dashed var(--rule)}
   .next-rule .lbl{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft);font-weight:700}
@@ -56,7 +50,7 @@
   .avatar.you{background:var(--blue)} .avatar.claude{background:#C75B38}
   .lane-row.future .avatar{background:var(--paper);border:2px dashed var(--rule);color:var(--ink-soft);box-shadow:none}
   .lane-row.future .avatar svg{width:20px;height:20px}
-  .lane-card{max-width:380px;width:100%;margin-bottom:20px;background:#fff;border:1px solid var(--rule);border-radius:14px;padding:16px 20px;box-shadow:0 1px 2px rgba(31,27,22,.05),0 10px 22px -16px rgba(31,27,22,.25)}
+  .lane-card{max-width:480px;width:100%;margin-bottom:20px;background:#fff;border:1px solid var(--rule);border-radius:14px;padding:16px 20px;box-shadow:0 1px 2px rgba(31,27,22,.05),0 10px 22px -16px rgba(31,27,22,.25)}
   .lane-row.future .lane-card{background:rgba(255,253,247,.5);border-style:dashed;box-shadow:none}
   .lane-card .ch{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:7px}
   .lane-card h4{margin:0;font-size:17px;font-weight:600;line-height:1.25;color:var(--ink)}
@@ -69,7 +63,6 @@
   .actor svg{width:11px;height:11px;fill:currentColor;display:block}
   .actor.human{background:#E7ECF1;color:#3C5871} .actor.claude{background:#F6E1D7;color:#B4542F}
   @media (max-width:640px){
-    .lane-heads{display:none}
     .lane-row{display:flex;align-items:stretch;gap:14px}
     .lane-row .spine{order:0;flex:none;width:44px}
     .lane-row .l,.lane-row .r{order:1;flex:1;min-width:0;justify-content:flex-start}
@@ -339,26 +332,11 @@
       <symbol id="ic-claude" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" d="M20.998 10.949H24v3.102h-3v3.028h-1.487V20H18v-2.921h-1.487V20H15v-2.921H9V20H7.488v-2.921H6V20H4.487v-2.921H3V14.05H0V10.95h3V5h17.998v5.949zM6 10.949h1.488V8.102H6v2.847zm10.51 0H18V8.102h-1.49v2.847z"/></symbol>
     </svg>
     <div class="how">
-      <p class="hint">From a raw recording to insights in Notion — a back-and-forth between you and Claude. The review loop now runs inside this tool too; only the final Notion publish is planned and not yet built.</p>
-      <div class="flow-legend">
-        <span class="actor human"><svg><use href="#ic-human"/></svg> You</span> bring the material and make the calls
-        <span style="color:var(--rule);font-weight:600">·</span>
-        <span class="actor claude"><svg><use href="#ic-claude"/></svg> Claude</span> does the heavy lifting
-      </div>
-
-      <div class="flow-phase">Now · in this tool</div>
-
-      <div class="lane-heads">
-        <div class="l"><span class="lane-pill you"><svg><use href="#ic-human"/></svg> You</span></div>
-        <div></div>
-        <div class="r"><span class="lane-pill claude"><svg><use href="#ic-claude"/></svg> Claude</span></div>
-      </div>
-
       <div class="lane-row">
         <div class="l">
           <div class="lane-card">
             <div class="ch"><span class="actor human"><svg><use href="#ic-human"/></svg> You</span><h4>Hand over the session</h4></div>
-            <p>You drop in the transcript, the recording if you have one, and a line or two on what was tested and who the participant was. That's all Claude needs to start.</p>
+            <p>Drop in the transcript, the recording, and a line on what was tested — all Claude needs to start.</p>
           </div>
         </div>
         <div class="spine"><div class="seg bot"></div><div class="avatar you"><svg><use href="#ic-human"/></svg></div></div>
@@ -371,7 +349,7 @@
         <div class="r">
           <div class="lane-card">
             <div class="ch"><span class="actor claude"><svg><use href="#ic-claude"/></svg> Claude</span><h4>Repairs the transcript</h4><span class="phase-tag">Phase 1</span></div>
-            <p>Claude fixes the ASR garble in the Romanian-primary transcript and restores the English domain terms. Every fix lands in the Repair log — applied, best-guess, or flagged for you.</p>
+            <p>Fixes the ASR garble and restores the English domain terms — every fix logged in the Repair log.</p>
           </div>
         </div>
       </div>
@@ -382,7 +360,7 @@
         <div class="r">
           <div class="lane-card">
             <div class="ch"><span class="actor claude"><svg><use href="#ic-claude"/></svg> Claude</span><h4>Extracts the insights</h4><span class="phase-tag">Phase 2</span><span class="here">you are here</span></div>
-            <p>Claude pulls reviewable insight cards — each with a category, topics, a verbatim evidence quote, a confidence level, and session provenance — anchored back to the exact transcript lines they came from.</p>
+            <p>Pulls insight cards — category, quote, confidence — each anchored to its exact transcript lines.</p>
           </div>
         </div>
       </div>
@@ -391,7 +369,7 @@
         <div class="l">
           <div class="lane-card">
             <div class="ch"><span class="actor human"><svg><use href="#ic-human"/></svg> You</span><h4>Review, edit &amp; classify</h4></div>
-            <p>You go through the cards — keep or drop, tweak the wording, and answer the open queries where the transcript was unclear. Then sort them by destination, keeping design-experiment ideas separate from current-state observations, since those live in different databases.</p>
+            <p>Keep or drop cards, tweak the wording, answer the open queries, and sort them by destination database.</p>
           </div>
         </div>
         <div class="spine"><div class="seg bot"></div><div class="avatar you"><svg><use href="#ic-human"/></svg></div></div>
@@ -404,7 +382,7 @@
         <div class="r">
           <div class="lane-card">
             <div class="ch"><span class="actor claude"><svg><use href="#ic-claude"/></svg> Claude</span><h4>Folds in your changes</h4></div>
-            <p>Claude reads your edits, comments, and exclusions from the packet you send back, then rebuilds the report with them folded in — resolving open queries and dropping excluded cards.</p>
+            <p>Reads your edits, comments, and exclusions, then rebuilds the report with them folded in.</p>
           </div>
         </div>
       </div>
@@ -417,7 +395,7 @@
         <div class="r">
           <div class="lane-card">
             <div class="ch"><span class="actor claude"><svg><use href="#ic-claude"/></svg> Claude</span><h4>Publishes to Notion</h4></div>
-            <p>Claude pushes the finalized insights into Notion through the Notion MCP, each into the right database — so design experiments and current-state findings land in separate places, ready to pool with other sessions and features.</p>
+            <p>Pushes the final insights to Notion via the Notion MCP — each into the right database.</p>
           </div>
         </div>
       </div>
