@@ -253,6 +253,14 @@ any section, and exclude cards (by unchecking them) directly in the HTML, then h
 produce a **review packet** (JSON by default; Markdown mirror). When the user pastes
 one back:
 
+**Recognize the cue.** The user rarely says "here is the review packet." They say things
+like *"I've left some comments"*, *"check the changes I made"*, *"I reviewed the cards"*,
+*"see my edits"*, *"I dropped a few"*, or *"take a look at the updates in the report"*.
+Treat any such phrasing as a request to fold in their `Send to Claude ↑` review — that
+packet is the channel their in-browser edits/comments/exclusions travel through. If they
+said this but pasted nothing, don't go hunting or guess: ask them to click **`Send to
+Claude ↑`** in the report and paste the packet (JSON or Markdown), then proceed below.
+
 1. Parse it. Confirm `session` matches the report you built. The packet carries only
    what changed — untouched cards/repairs/turns are omitted. An **empty packet**
    (just `{session}`) means no changes: say so and leave the report as-is.
