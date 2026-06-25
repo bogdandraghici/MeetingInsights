@@ -86,11 +86,14 @@ Everything else — the three pill tabs (Ideas + transcript / Repair log / How t
 works), the sticky transcript pane, card structure, the glossary-cluster repair log, the
 category **and topic** filters, export panel, footer, responsive rules — is part of the
 template and stays. Also protected now: the **review round-trip** machinery — the hover action
-buttons on cards/repairs/turns/masthead (`✎ Edit` / `💬 Comment` / `✕ Cut`), the
-in-place edit fields, the comment boxes, the cut state, the toolbar
-edits/comments/cut tally, and the `Send to Claude ↑` packet panel (`#reviewPanel`,
-`buildPacket`). These are part of the template; preserve them byte-for-byte like
-the tabs and filters. They are pure presentation/serialization — never session data.
+buttons on cards/repairs/turns/masthead (`✎ Edit` / `💬 Comment`), the
+in-place edit fields, the comment boxes, the **keep checkbox** (every card starts
+**checked/included**; unchecking it excludes the card — the card fades out and is struck
+through to make clear it won't be included, and it drops out of both the export and the
+review packet), the toolbar edits/comments/excluded tally, and the `Send to Claude ↑`
+packet panel (`#reviewPanel`, `buildPacket`). These are part of the template; preserve
+them byte-for-byte like the tabs and filters. They are pure presentation/serialization —
+never session data.
 The **How this works** tab (`<section id="view-how">`) is a static
 **two-lane handoff** diagram (imported from the "Human-Claude collaboration tool" Claude
 Design project, Option A): **you** (blue person badge, left lane) and **Claude** (clay,
@@ -243,7 +246,7 @@ everything, say so and leave the report as-is rather than rebuilding needlessly.
 ## Phase 3 — Fold in review
 
 After the report is delivered, the user can edit insight-card fields, comment on
-any section, and cut cards directly in the HTML, then hit **`Send to Claude ↑`** to
+any section, and exclude cards (by unchecking them) directly in the HTML, then hit **`Send to Claude ↑`** to
 produce a **review packet** (JSON by default; Markdown mirror). When the user pastes
 one back:
 
@@ -253,7 +256,7 @@ one back:
 2. Apply it onto the working data:
    - `cards[].edits` — overwrite those exact fields on the matching `IDEAS` entry
      (`title`, `detail`, `quote`, `category`, `confidence`, `topics`).
-   - `cards[].cut:true` — drop that idea entirely.
+   - `cards[].excluded:true` — the user unchecked that card; drop the idea entirely.
    - `cards[].note`, `report_note` — treat as instructions; they may direct merges,
      re-scoping, re-attribution, or wording the raw field edits can't express.
    - `repairs[]` (keyed by `bucket` + the garbled `orig` string) — act on the repair

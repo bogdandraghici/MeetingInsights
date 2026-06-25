@@ -113,9 +113,7 @@
   select.filter{font:inherit;font-size:13px;border:1px solid var(--rule);border-radius:8px;padding:7px 10px;background:#fff}
 
   .card{border:1px solid var(--rule);border-radius:12px;background:#fff;padding:16px 16px 14px;margin-bottom:13px;display:grid;grid-template-columns:30px 1fr;gap:13px;box-shadow:0 1px 0 var(--shadow);transition:border-color .15s,box-shadow .15s;cursor:pointer}
-  .card.kept{border-color:var(--green)}
   .card.active{box-shadow:0 0 0 2px var(--mark),0 1px 0 var(--shadow)}
-  .card.kept.active{box-shadow:0 0 0 2px var(--mark),0 0 0 4px rgba(46,111,94,.25)}
   .keep{appearance:none;width:23px;height:23px;border:1.5px solid var(--ink-soft);border-radius:6px;cursor:pointer;position:relative;margin-top:2px;background:#fff;flex:none}
   .keep:checked{background:var(--green);border-color:var(--green)}
   .keep:checked::after{content:"✓";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:700}
@@ -131,7 +129,8 @@
   .conf{font-size:10px;letter-spacing:.05em;text-transform:uppercase;font-weight:700;display:inline-flex;align-items:center;gap:5px;color:var(--ink-soft)}
   .dot{width:8px;height:8px;border-radius:50%;display:inline-block}
   .conf.high .dot{background:var(--green)} .conf.medium .dot{background:var(--amber)} .conf.low .dot{background:var(--mark)}
-  .src{margin-left:auto;font-size:11px;color:var(--mark);font-weight:600;white-space:nowrap}
+  .src{margin-left:auto;font-size:11px;color:var(--mark);font-weight:600;white-space:nowrap;transition:opacity .12s}
+  .card:hover .src,.card.editing .src{opacity:0}
   .src .srcn{color:var(--ink-soft);font-weight:600}
   .detail{margin:0 0 10px;font-size:14.5px}
   .quote{border-left:3px solid var(--rule);padding:7px 0 7px 13px;margin:0 0 4px;font-family:Georgia,serif;font-style:italic;color:#3a372f;font-size:14px}
@@ -192,9 +191,8 @@
     border-radius:5px;padding:2px 7px}
   .flag.edit{background:#E2EBF1;color:#33536F}
   .flag.note{background:#EDE6D6;color:#7A6320}
-  .flag.cut{background:#F6E3DF;color:#9A352A}
-  .card.cut{opacity:.5}
-  .card.cut h3,.card.cut .detail,.card.cut .quote{text-decoration:line-through;
+  .card.excluded{opacity:.5}
+  .card.excluded h3,.card.excluded .detail,.card.excluded .quote{text-decoration:line-through;
     text-decoration-color:var(--mark)}
   .cmt{margin-top:10px}
   .cmt-in{width:100%;min-height:54px;border:1px solid var(--amber);border-radius:8px;
@@ -289,7 +287,7 @@
           <button class="act" onclick="openExport()">Export kept ↓</button>
           <button class="send" data-act="send-review" id="sendReview" onclick="openReview()" disabled>Send to Claude ↑</button>
         </div>
-        <p class="hint">Click a card to highlight its source lines — <span style="color:var(--mark)">red bar</span> = first line, <span style="color:var(--green)">green bars</span> = the rest · click a transcript line to jump to its card. Cards start unselected.</p>
+        <p class="hint">Click a card to highlight its source lines — <span style="color:var(--mark)">red bar</span> = first line, <span style="color:var(--green)">green bars</span> = the rest · click a transcript line to jump to its card. All cards are included by default — uncheck one to drop it (it fades out).</p>
         <div class="export" id="exportPanel">
           <div class="row">
             <div class="seg">
@@ -304,7 +302,7 @@
           <textarea id="outBox" readonly></textarea>
         </div>
         <div class="review" id="reviewPanel">
-          <p class="lead">Your edits, comments, and cuts — paste this back into Claude to rebuild the report. Untouched items are omitted.</p>
+          <p class="lead">Your edits, comments, and exclusions — paste this back into Claude to rebuild the report. Untouched items are omitted.</p>
           <div class="row">
             <div class="seg">
               <button id="rfmt-json" aria-pressed="true" onclick="setReviewFmt('json')">JSON</button>
@@ -390,7 +388,7 @@
         <div class="l">
           <div class="lane-card">
             <div class="ch"><span class="actor human"><svg><use href="#ic-human"/></svg> You</span><h4>Review, edit &amp; classify</h4></div>
-            <p>You go through the cards — keep or cut, tweak the wording, and answer the open queries where the transcript was unclear. Then sort them by destination, keeping design-experiment ideas separate from current-state observations, since those live in different databases.</p>
+            <p>You go through the cards — keep or drop, tweak the wording, and answer the open queries where the transcript was unclear. Then sort them by destination, keeping design-experiment ideas separate from current-state observations, since those live in different databases.</p>
           </div>
         </div>
         <div class="spine"><div class="seg bot"></div><div class="avatar you"><svg><use href="#ic-human"/></svg></div></div>
@@ -403,7 +401,7 @@
         <div class="r">
           <div class="lane-card">
             <div class="ch"><span class="actor claude"><svg><use href="#ic-claude"/></svg> Claude</span><h4>Folds in your changes</h4></div>
-            <p>Claude reads your edits, comments, and cuts from the packet you send back, then rebuilds the report with them folded in — resolving open queries and dropping cut cards.</p>
+            <p>Claude reads your edits, comments, and exclusions from the packet you send back, then rebuilds the report with them folded in — resolving open queries and dropping excluded cards.</p>
           </div>
         </div>
       </div>
@@ -436,7 +434,7 @@ const TURNS = [
  ["P","00:51","Nu știu exact motivul, dar prima dată când intri pe un mediu primește eroarea asta, adică îți dă fail."],
  ["B","01:03","Și niciodată nu știu de la ce — îi dau un refresh și până la urmă merge."],
  ["F","01:13","Nu contează unde ești — poți să te duci în orice workspace. De unde te-ai aștepta să poți da export content pentru un KB, din zona de config?"],
- ["P","01:37","Am două opțiuni. Ori intru aici — cred că asta e prima opțiune în capul meu — ori a doua, care nu-i valabilă: acolo ar fi doar insert. Mă gândeam la zona asta de runtime. Văd că s-a adăugat și zona asta de <span class='unsure' title='Phase-1 query: what is EMEL?'>EMEL</span>."],
+ ["P","01:37","Am două opțiuni. Ori intru aici — cred că asta e prima opțiune în capul meu — ori a doua, care nu-i valabilă: acolo ar fi doar insert. Mă gândeam la zona asta de runtime. Văd că s-a adăugat și zona asta de ML."],
  ["F","02:04","Sunt mai multe prototipuri pe mediul ăsta. Caută unde ai zis prima dată."],
  ["P","02:12","Să zicem că e ăsta: „export definition” și „content”, sunt separate. Ok, deci ar fi unde mă așteptam."],
  ["F","02:39","Să zicem că vrei să-l duci în zona de runtime, pe un alt workspace — sau poți pe același workspace."],
@@ -524,10 +522,10 @@ const IDEAS = [
   detail:"For a sandbox→production content move, the “used by builds” info isn’t what the user needs; it’s tied to build/branch and role context they don’t reach for here.",
   quote:"Zona de „used by builds” nu-mi dau seama… în production foarte rar m-aș aștepta.",
   speaker:"P",confidence:"medium",needs:false,anchors:[17,26],topics:["Validation & usage", "Team & environments"]},
- {id:"idea-04",title:"Rename “Delete” → “Delete content”",category:"naming_copy",
-  detail:"Delete is ambiguous (content vs definition) and overlaps with replace; agreed to keep it but label it specifically.",
-  quote:"are sens să-l lăsăm, dar să fim mai specifici: „delete content”.",
-  speaker:"B",confidence:"high",needs:false,anchors:[36,37],topics:["Naming & labels"]},
+ {id:"idea-04",title:"“Delete” is ambiguous — Cristi expects it to clear content for a fresh load",category:"naming_copy",
+  detail:"Cristi flagged “Delete” as ambiguous between content and definition, and described its real value: wiping old content for a fresh load — same end as replace, but guaranteeing an empty target. The agreed fix (Bogdan’s proposal) is to label it “delete content”.",
+  quote:"Te-ar ajuta să ștergi conținutul dacă ai content vechi și vrei unul nou. E aceeași chestie cu replace, dar dacă vrei să te asiguri că e gol…",
+  speaker:"P",confidence:"high",needs:false,anchors:[34,35,36,37],topics:["Naming & labels"]},
  {id:"idea-05",title:"“View Details” shows name + description; user expected configuration",category:"naming_copy",
   detail:"Expectation mismatch: Cristi expected to see the config there, but it shows only name + description. Also a question on whether the capital “D” styling is intentional; agreed it should match the config one.",
   quote:"„View Details”… aici aș vedea configurarea KB-ului. — [Arată] doar numele și descrierea.",
@@ -552,11 +550,10 @@ const IDEAS = [
   detail:"The same content added on FlowX Database produces no warnings because its content lacks the clear rules/limits metadata has — an inconsistency to be aware of.",
   quote:"pe FlowX Database… nu sunt genul ăsta de warning-uri, pentru că content-ul nu are reguli foarte clare cum au metadatele.",
   speaker:"F",confidence:"medium",needs:false,anchors:[74],topics:["Removed-content warnings", "Team & environments"]},
- {id:"idea-11",title:"Export discoverability — and an unexplained “EMEL” area",category:"feature_request",
-  detail:"Cristi weighed config vs runtime before settling on the export entry point, and noticed a newly-added area he couldn’t identify.",
-  quote:"Mă gândeam la zona asta de runtime. Văd că s-a adăugat și zona asta de EMEL.",
-  speaker:"P",confidence:"medium",needs:true,anchors:[6,8],topics:["Export / import"],
-  q:"What is the “EMEL” area Cristi saw added near export? Not recoverable from audio — confirm the real tab name."},
+ {id:"idea-11",title:"Export discoverability — and a newly-added ML area",category:"feature_request",
+  detail:"Cristi weighed config vs runtime before settling on the export entry point, and noticed a newly-added ML area near it.",
+  quote:"Mă gândeam la zona asta de runtime. Văd că s-a adăugat și zona asta de ML.",
+  speaker:"P",confidence:"medium",needs:false,anchors:[6,8],topics:["Export / import"]},
  {id:"idea-12",title:"First-entry environment error (known hard-refresh flake)",category:"open_question",
   detail:"An error sometimes appears the first time you enter an environment; a hard refresh clears it. Pre-existing infra quirk, not this feature — flagged so it isn’t mistaken for a finding.",
   quote:"prima dată când intri pe un mediu primește eroarea asta… îi dau un refresh și merge.",
@@ -597,6 +594,7 @@ const REPAIRS = {
     ["ice-tu have","nice to have"],
     ["mandeteri","mandatory"],
     ["polisaver ights · polic","policy overrides"],
+    ["EMEL","ML (Machine Learning) — letters „M-L” misheard"],
     ["Veți voi · Necesi aș me · O zi fain. Să.","__DROP__"]
   ],
   confirm:[
@@ -606,7 +604,6 @@ const REPAIRS = {
     ["damboulea … înainte cu tupeu","dă-i înainte cu tupeu  (barrel ahead anyway)"]
   ],
   query:[
-    ["zona asta de EMEL","New area Cristi saw near export — what is „EMEL”?"],
     ["e un ucuit (02:51)","Unrecoverable — what was said?"],
     ["Folosim op dat-o… niște nalșbăies create (01:17)","Observer line, fully garbled — what was said?"]
   ]
@@ -615,7 +612,7 @@ const REPAIRS = {
 const turnToIdeas={};
 IDEAS.forEach(it=>it.anchors.forEach(a=>{(turnToIdeas[a]=turnToIdeas[a]||[]).push(it.id);}));
 const ORIG={};IDEAS.forEach(it=>{ORIG[it.id]=it;});
-const REVIEW={edits:{},cuts:{},notes:{},repairComments:{},repairSectionNote:"",turnComments:{},reportNote:""};
+const REVIEW={edits:{},notes:{},repairComments:{},repairSectionNote:"",turnComments:{},reportNote:""};
 function effective(it){return Object.assign({},it,REVIEW.edits[it.id]||{});}
 const SPK={P:"Cristi",F:"Facil.",B:"Bogdan",O:"Obs."};
 
@@ -637,7 +634,7 @@ TURNS.forEach((t,i)=>{
   scriptEl.appendChild(d);
 });
 
-const kept=new Set();
+const kept=new Set(IDEAS.map(i=>i.id)); // all cards included by default
 const ideasEl=document.getElementById('ideas');
 function titleOf(id){const x=IDEAS.find(i=>i.id===id);return x?x.title:id;}
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
@@ -675,6 +672,7 @@ IDEAS.forEach(it=>{
   ideasEl.appendChild(card);
   rerenderCard(it.id);
 });
+refresh(); // seed kept counters (all cards included by default)
 
 // category + topic filters (ANDed)
 const cats=['all',...new Set(IDEAS.map(i=>i.category))];
@@ -768,11 +766,11 @@ function jumpEdge(dir){
   sc.addEventListener('scroll',()=>{if(!raf)raf=requestAnimationFrame(tick);},{passive:true});
   addEventListener('resize',()=>{if(!raf)raf=requestAnimationFrame(tick);});})();
 
-function toggle(id,on){on?kept.add(id):kept.delete(id);document.getElementById('c-'+id).classList.toggle('kept',on);refresh();}
+function toggle(id,on){on?kept.add(id):kept.delete(id);document.getElementById('c-'+id).classList.toggle('excluded',!on);refresh();commitReviewChange();}
 function refresh(){document.getElementById('kept-n').textContent=kept.size;document.getElementById('m-kept').textContent=kept.size;
   if(document.getElementById('exportPanel').classList.contains('show'))renderOut();}
 function selectAll(on){document.querySelectorAll('.card').forEach(card=>{ if(card.style.display==='none')return;
-  const cb=card.querySelector('.keep');cb.checked=on;const id=card.id.slice(2);on?kept.add(id):kept.delete(id);card.classList.toggle('kept',on);});refresh();}
+  const cb=card.querySelector('.keep');cb.checked=on;const id=card.id.slice(2);on?kept.add(id):kept.delete(id);card.classList.toggle('excluded',!on);});refresh();commitReviewChange();}
 function showTab(t){['ideas','rep','how'].forEach(name=>{
   document.getElementById('view-'+name).classList.toggle('hidden',name!==t);
   document.getElementById('tab-'+name).setAttribute('aria-selected',name===t);});}
@@ -812,10 +810,10 @@ function changedFields(id){
 function buildPacket(){
   const cards=[];
   IDEAS.forEach(it=>{
-    const ch=changedFields(it.id),note=REVIEW.notes[it.id],cut=!!REVIEW.cuts[it.id];
+    const ch=changedFields(it.id),note=REVIEW.notes[it.id],excluded=!kept.has(it.id);
     const hasEdit=Object.keys(ch).length>0;
-    if(hasEdit||cut||nonEmpty(note)){const c={id:it.id};
-      if(cut)c.cut=true;if(hasEdit)c.edits=ch;if(nonEmpty(note))c.note=note.trim();cards.push(c);}
+    if(hasEdit||excluded||nonEmpty(note)){const c={id:it.id};
+      if(excluded)c.excluded=true;if(hasEdit)c.edits=ch;if(nonEmpty(note))c.note=note.trim();cards.push(c);}
   });
   const repairs=[];
   Object.keys(REVIEW.repairComments).forEach(key=>{const cm=REVIEW.repairComments[key];
@@ -833,23 +831,23 @@ function buildPacket(){
   return p;
 }
 function packetCounts(){
-  let edits=0,comments=0,cuts=0;
+  let edits=0,comments=0,excluded=0;
   IDEAS.forEach(it=>{if(Object.keys(changedFields(it.id)).length)edits++;
-    if(REVIEW.cuts[it.id])cuts++;if(nonEmpty(REVIEW.notes[it.id]))comments++;});
+    if(!kept.has(it.id))excluded++;if(nonEmpty(REVIEW.notes[it.id]))comments++;});
   Object.values(REVIEW.repairComments).forEach(c=>{if(nonEmpty(c))comments++;});
   Object.values(REVIEW.turnComments).forEach(c=>{if(nonEmpty(c))comments++;});
   if(nonEmpty(REVIEW.repairSectionNote))comments++;
   if(nonEmpty(REVIEW.reportNote))comments++;
-  return {edits,comments,cuts};
+  return {edits,comments,excluded};
 }
 function renderTally(){
-  const {edits,comments,cuts}=packetCounts();
+  const {edits,comments,excluded}=packetCounts();
   const parts=[];
   parts.push(`<em>${edits}</em> edit${edits===1?'':'s'}`);
   parts.push(`<em>${comments}</em> comment${comments===1?'':'s'}`);
-  parts.push(`<em>${cuts}</em> cut`);
+  parts.push(`<em>${excluded}</em> excluded`);
   document.getElementById('review-tally').innerHTML=parts.join(' · ');
-  document.getElementById('sendReview').disabled=(edits+comments+cuts===0);
+  document.getElementById('sendReview').disabled=(edits+comments+excluded===0);
 }
 function commitReviewChange(){renderTally();
   if(document.getElementById('reviewPanel').classList.contains('show'))renderReview();}
@@ -857,7 +855,7 @@ let rfmt='json';
 function packetToMd(p){
   let o=`# Review for ${p.session}\n`;
   if(p.report_note)o+=`\n**Report note:** ${p.report_note}\n`;
-  (p.cards||[]).forEach(c=>{o+=`\n## ${c.id}${c.cut?' — CUT':''}\n`;
+  (p.cards||[]).forEach(c=>{o+=`\n## ${c.id}${c.excluded?' — EXCLUDED':''}\n`;
     if(c.edits)for(const k in c.edits)o+=`- edit \`${k}\` → ${JSON.stringify(c.edits[k])}\n`;
     if(c.note)o+=`- note: ${c.note}\n`;});
   if(p.repairs&&p.repairs.length){o+=`\n## Repairs\n`;
@@ -892,23 +890,21 @@ function applyCardState(card,id){
   const edited=Object.keys(changedFields(id)).length>0;
   card.classList.toggle('has-edit',edited);
   card.classList.toggle('has-note',nonEmpty(REVIEW.notes[id]));
-  card.classList.toggle('has-cut',!!REVIEW.cuts[id]);
+  card.classList.toggle('excluded',!kept.has(id));
   const body=card.querySelector(':scope > div:not(.cardtools)'); // the <div> from cardHTML
   let flags=card.querySelector('.flags');if(flags)flags.remove();
   const tags=[];
   if(edited)tags.push('<span class="flag edit">edited</span>');
   if(nonEmpty(REVIEW.notes[id]))tags.push('<span class="flag note">comment</span>');
-  if(REVIEW.cuts[id])tags.push('<span class="flag cut">cut</span>');
   if(tags.length){const f=document.createElement('div');f.className='flags';
     f.innerHTML=tags.join('');body.appendChild(f);}
 }
 function attachCardTools(card,it){
   const t=document.createElement('div');t.className='cardtools';
-  t.innerHTML=`<button data-t="edit">✎ Edit</button><button data-t="comment">💬 Comment</button><button data-t="cut">✕ Cut</button>`;
+  t.innerHTML=`<button data-t="edit">✎ Edit</button><button data-t="comment">💬 Comment</button>`;
   t.querySelectorAll('button').forEach(b=>b.addEventListener('click',e=>{
     e.stopPropagation();const k=b.dataset.t;
     if(k==='edit')enterEdit(it.id);
-    else if(k==='cut')toggleCut(it.id);
     else if(k==='comment')toggleCardComment(it.id);}));
   card.appendChild(t);
 }
@@ -935,7 +931,7 @@ function cardEditHTML(it,e){
   const catOpts=CATS.map(c=>`<option value="${c}"${c===e.category?' selected':''}>${c.replace('_',' ')}</option>`).join('');
   const confOpts=CONFS.map(c=>`<option value="${c}"${c===e.confidence?' selected':''}>${c}</option>`).join('');
   const chips=(e.topics||[]).map((tp,i)=>`<span class="topic echip" data-i="${i}">${tp}<button data-rm="${i}">×</button></span>`).join('');
-  return `<input type="checkbox" class="keep" disabled aria-label="keep">
+  return `<input type="checkbox" class="keep" disabled${kept.has(it.id)?' checked':''} aria-label="keep">
     <div>
       <div class="tagrow">
         <select class="esel" data-f="category">${catOpts}</select>
@@ -980,11 +976,6 @@ function commitEdit(id){
   if(Object.keys(ch).length===0)delete REVIEW.edits[id];else REVIEW.edits[id]=ch;
   rerenderCard(id);commitReviewChange();
 }
-function toggleCut(id){
-  if(REVIEW.cuts[id])delete REVIEW.cuts[id];else REVIEW.cuts[id]=true;
-  const card=document.getElementById('c-'+id);
-  card.classList.toggle('cut',!!REVIEW.cuts[id]);
-  applyCardState(card,id);commitReviewChange();}
 function commentField(initial,onChange,placeholder){
   const wrap=document.createElement('div');wrap.className='cmt';
   const ta=document.createElement('textarea');ta.className='cmt-in';
