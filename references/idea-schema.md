@@ -55,7 +55,7 @@ One entry per idea with `frame:true`. Produced by assets/extract-frames.sh, base
 ## SESSION — provenance, flattened onto every exported insight
 ```
 {
-  id:          "kb-export-2026-06-17",      // slug <feature>-<date>; the pool namespace
+  id:          "kb-export-cristi-2026-06-17", // slug <feature>-<participant>-<date>; the pool namespace
   feature:     "Knowledge Base export/import",
   date:        "2026-06-17",
   participant: "Cristi"
@@ -72,6 +72,9 @@ and carrying its own provenance:
 ```
 So one insight row is meaningful standalone in the pool. The in-page `idea-NN` ids stay
 session-local in the DOM (anchors, highlights) — only the *export* id is namespaced.
+Because `SESSION.id` is also the publish key (`sessions/<id>.html`, manifest keyed by
+`id`), it **must be unique per session** so publishing *adds* rather than overwriting
+another session — include the participant in the slug. See `references/publishing.md`.
 `topics` stay free-form per session (no shared taxonomy); near-duplicate labels are
 reconciled in the downstream pooling/dedup step, not here.
 

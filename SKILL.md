@@ -23,8 +23,15 @@ explicitly said an item isn't available). Ask for whatever the user hasn't alrea
 provided:
 
 1. **Session transcript** — the raw transcript text (or a path/file). This is required;
-   without it there is nothing to repair. If only a recording exists, say so and stop —
-   this skill repairs and extracts from text, it does not transcribe audio.
+   without it there is nothing to repair. **If only a recording exists (a video/audio file
+   on disk) and no transcript, do not stop — first invoke the `transcribe-video` skill on
+   that recording to produce the raw transcript**, then proceed with the phases below
+   using that generated transcript *together with* the original recording (the recording
+   is still needed for frame extraction and audio repairs in steps 2 and Phase 3). The
+   transcribe-video output is already in the diarized, timestamped `[HH:MM:SS] Speaker N:`
+   format this skill ingests; treat it as raw — Phase 1 still repairs the Romanian and
+   Phase 1b still reconciles speakers. Only stop if there is neither a transcript nor a
+   readable recording on disk.
 2. **Session recording** — the video/audio file, if available. Used only for screen
    context (frame extraction) and to resolve `query`/`confirm` repairs by listening.
    It must be a real file **on disk** to be usable for frames (a Drive/cloud link can't
@@ -35,9 +42,20 @@ provided:
    makes the repair and extraction sharp: it disambiguates domain terms the ASR mangled,
    tells you which insights matter, and seeds the masthead. Even one or two sentences
    helps a lot. Pin down four facts from it for the `SESSION` provenance block — **feature
-   area, date, participant**, and a slug **id** (`<feature>-<date>`, e.g.
-   `kb-export-2026-06-17`) — because these get flattened onto every exported insight so it
-   stays self-describing once pooled with other sessions. If any are unstated, ask.
+   area, date, participant**, and a slug **id** — because these get flattened onto every
+   exported insight so it stays self-describing once pooled with other sessions. If any are
+   unstated, ask.
+
+   **The `id` must be unique per session — it is the key that decides add-vs-replace when
+   publishing.** Use `<feature>-<participant>-<date>` (e.g. `kb-export-cristi-2026-06-17`),
+   *always including the participant*. The old `<feature>-<date>` form is **not collision-proof**:
+   two people tested on the same feature on the same day produce the same id, and publishing the
+   second one **overwrites the first on the sessions site** (the manifest upserts by `id`, and the
+   page file is `sessions/<id>.html`). A new session must get a new id so it is **added, not
+   replacing** an existing page. Re-using an id is reserved for *intentionally* updating that same
+   session in place (iterating on one report). Before publishing, if there's any chance another
+   session shares this feature+date, confirm the id is distinct (check the live index — see the
+   publish step). If two participants were tested in one recording, give each its own id.
 
    **Establish whose stance the insights should center on.** Most of these are user-testing
    interviews with one subject — the **interviewed/tested person** — and insights must
@@ -239,6 +257,47 @@ Base64-embed each frame into `FRAMES` keyed by idea id, set `frame:true` on thos
 and the template renders an inline "⌖ view frame" toggle on the card. This is the only
 sanctioned *addition* to the template, because it's purely additive and styled to match.
 
+## Optional — Publish to the sessions site
+
+When the user wants to **share** a built report or collect sessions in one browsable
+place ("publish this", "upload it to the Testing repo", "put it on the sessions site"),
+publish the HTML to the GitHub repo `bogdandraghici/Testing` (served via GitHub Pages).
+This is an **explicit opt-in step — never automatic** (like frames). It requires an
+authenticated `gh` CLI; if `gh auth status` fails, tell the user to run `gh auth login`.
+
+```
+python3 "${CLAUDE_SKILL_DIR}/scripts/publish.py" <path-to-report.html> ["commit message"]
+```
+
+The script parses the report's `SESSION` + `IDEAS` (topics union, insight count, title),
+shallow-clones the repo (initialising `main` if it's still empty), copies the report to
+`sessions/<SESSION.id>.html`, **upserts** the session into `sessions.json` (keyed by
+`id`), regenerates `index.html` from `assets/index-template.html`, commits all three,
+pushes to `main`, enables Pages if needed, polls, and prints two URLs on its last stdout
+lines:
+
+> **Publishing ADDS — it must never silently replace another session.** Because the
+> manifest is keyed by `id` and the page lives at `sessions/<id>.html`, publishing a
+> report whose `id` matches an *existing, different* session overwrites that session's
+> entry **and its HTML file**. So: a **new** session must have a **unique `id`** (include
+> the participant — see Intake) so it lands *alongside* what's already there. Re-using an
+> `id` is **only** for deliberately updating the *same* session in place (iterating on one
+> report). **Before publishing a new session, check the live index
+> (`https://bogdandraghici.github.io/Testing/`) — if the `id` you're about to publish is
+> already listed for a different participant/session, change this session's `id` first.**
+> If you discover you've already overwritten one, the previous version is recoverable from
+> the repo's git history (`git show <prev-commit>:sessions/<id>.html`) — restore it under a
+> distinct id.
+
+- index:   `https://bogdandraghici.github.io/Testing/` — a session browser that filters
+  and sorts **by feature area** (sessions grouped by feature, newest date first within each)
+- session: `https://bogdandraghici.github.io/Testing/sessions/<id>.html`
+
+Report both URLs to the user. First-time deploys can take ~30–90s; the script waits and
+notes if the page isn't 200 yet. Don't hand-edit `index.html` / `sessions.json` in the
+repo — the script regenerates them. See `references/publishing.md` for the manifest
+schema and mechanics.
+
 ## Build method (reliable, drift-free)
 
 1. `cp "${CLAUDE_SKILL_DIR}/assets/template.html" <out>.html`
@@ -343,8 +402,9 @@ transcription and repair a little better for the next.
 `${CLAUDE_SKILL_DIR}` resolves to this skill's own directory at runtime, regardless of
 whether the skill is installed personally (`~/.claude/skills/`), per-project
 (`.claude/skills/`), or as a plugin. Use it for `assets/template.html`,
-`assets/extract-frames.sh`, `assets/glossary.txt`, and the `references/` files. If the
-variable is unset (older runtimes), fall back to paths relative to this SKILL.md.
+`assets/extract-frames.sh`, `assets/glossary.txt`, `assets/index-template.html`,
+`scripts/publish.py`, and the `references/` files. If the variable is unset (older
+runtimes), fall back to paths relative to this SKILL.md.
 
 ## Speaker codes
 
