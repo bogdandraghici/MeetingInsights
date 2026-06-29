@@ -114,3 +114,20 @@ refugee travel doc
 National ID
 driver's license
 passport
+SPLADE
+LightGBM
+corpus
+training corpus
+add to corpus
+testing pool
+candidates
+trained models
+average accuracy
+per class recall
+critical labels
+overview
+segmented button
+generic binary model
+document classifier
+model type
+auto-label

@@ -37,8 +37,8 @@ provided:
    It must be a real file **on disk** to be usable for frames (a Drive/cloud link can't
    be read as video). Optional — note that without it, screen-dependent insights stay
    unresolved and some repairs remain best-guesses.
-3. **A brief description of the session** — what was being tested, who the participant
-   was, the product/feature area, and the goal of the session. This is the context that
+3. **A brief description of the session** — what was discussed or tested, who was in the
+   room (and their roles), the product/feature area, and the goal of the session. This is the context that
    makes the repair and extraction sharp: it disambiguates domain terms the ASR mangled,
    tells you which insights matter, and seeds the masthead. Even one or two sentences
    helps a lot. Pin down four facts from it for the `SESSION` provenance block — **feature
@@ -57,15 +57,30 @@ provided:
    session shares this feature+date, confirm the id is distinct (check the live index — see the
    publish step). If two participants were tested in one recording, give each its own id.
 
-   **Establish whose stance the insights should center on.** Most of these are user-testing
-   interviews with one subject — the **interviewed/tested person** — and insights must
-   capture *their* stance, not the interviewer's (see Phase 2). So nail down, up front:
-   which diarized speaker is the subject, and that the session is in fact a one-subject
-   interview rather than (say) a peer design discussion or workshop with no single subject.
-   If the transcript doesn't make this obvious — who's testing vs. who's facilitating —
-   **ask at the start**; don't guess, because mis-identifying the subject flips the
-   attribution on every card. Reflect it in the `SPK` mapping (which code is the
-   participant) and `SESSION.participant`.
+   **Establish the session type — it sets how every insight is attributed and what the
+   report is *about*.** There are two shapes, and the skill is not biased toward either:
+
+   - **User-testing / single-subject** (interview, usability test) — one **subject**, the
+     tested person. Insights capture *their* stance, not the interviewer's (see Phase 2).
+     Nail down which diarized speaker is the subject; mis-identifying them flips the
+     attribution on every card.
+   - **Meeting / sync / workshop** — *no single subject*; a peer discussion where everyone
+     proposes, pushes back, and reflects. Here the report is about **what was discussed,
+     how the topics evolved, and the conclusions reached** — and each insight is attributed
+     to *whoever actually voiced it*, never centered on one person (see Phase 2). Because a
+     point often changes mid-discussion, capture where it **landed**, and flag ideas that
+     were intermediate or abandoned as such rather than presenting them as conclusions.
+
+   Decide the type from the description. If the transcript doesn't make the format obvious
+   (one subject being probed vs. peers talking as equals), **ask at the start** — don't
+   guess. For a meeting, pin the **roster + roles** ("Bogdan — designer, presenting the
+   prototype; Ana — PM; Bogdan — researcher, joins ~40 min"): role/expertise is the main
+   lever for fixing diarization in Phase 1b, and two people can share a name. Reflect the
+   outcome in `SPK` (readable name per code) and `SESSION.participant` (the subject for
+   user-testing; the roster for a meeting). **When you invoke `transcribe-video` on a
+   recording (intake step 1), pass that roster to it via `--speakers`, and add `--voice-attrs`
+   whenever the cast is cross-gender** (it tags each line's perceived gender, pinning the
+   woman's lines to her) — prevention beats post-hoc reconciliation.
 
 Use the session description to extend the working vocabulary beyond `assets/glossary.txt`
 (product names, feature names, people) so Phase 1 repairs are grounded rather than
@@ -187,6 +202,49 @@ tagged as the facilitator, a question and its answer sharing one label). The dec
 cues — role/content, adjacency logic, backchannels, and resolving by audio — are in
 `references/repair-heuristics.md` ("Speaker / diarization reconciliation").
 
+**In a meeting / peer session the "facilitator asks, participant reacts" asymmetry does
+not exist** — everyone proposes and reflects in the first person, so that cue is useless
+and misattributions persist (a peer's reflective line slides onto another peer). Lean
+instead on the peer cues in the same reference: **role-knowledge** (each person owns a
+domain — the PM states product facts/plans, the designer narrates the UI they built, the
+engineer/researcher explains internals), **self-reference & ownership** ("prototipul meu",
+"am făcut", "asumpția mea"), **name-mention logic** (a speaker never names themselves in
+the third person — "l-am sunat pe Bogdan" ⇒ the speaker is *not* Bogdan; "mersi, Bogdan" ⇒
+Bogdan is the addressee), and **stance continuity** (the person pressing a concern is
+usually still pressing it two turns later). Then do a **voice-consistency re-read**: read
+each speaker's lines as one monologue — any line that breaks the persona (wrong expertise,
+opposite stance, self-address) is the misattribution to flip.
+
+The peer failure mode is **silent guessing on a reflective line that fits either person**
+equally ("cred că asumpția mea… e greșită" — a first-person reflection with no role,
+ownership, or name tell). The cues above won't decide these, and that's exactly where ASR
+errors hide. Don't pick silently: keep your best-guess speaker but log it as a
+**confirm**/**query** (`["@33:49 „asumpția mea… e greșită”", "Bogdan or Ana?"]`), and set
+`needs:true` on any card that leans on it, so the user settles it in the clarification pass
+(or by audio). Flag the ambiguous ones rather than committing a coin-flip to a card.
+
+**Don't trust a re-transcription to settle same-voice peer lines** (tested). Re-running
+`transcribe-video` on a stretch — even with `--speakers` — reliably fixes *phantom
+speakers* and *role-clear* turns, but for two similar voices (e.g. two men) it is
+**unstable at the line level**: successive runs disagree with each other and with the
+original on who-said-what. So re-transcription is a *cross-check*, not ground truth. Trust
+it only where it agrees with a **content anchor** (an English line being read from one
+person's chat, UI narration, a name mention) or where two runs + the content all converge;
+otherwise leave the line flagged and let the **person who was in the room** settle it via
+the Phase 3 review (`Send to Claude ↑`). Audio you *listen to* still beats re-transcribing.
+
+**Use voice-gender tags as a strong prior when present.** If the transcript carries per-line
+gender tags (transcribe-video's `--voice-attrs` → `Speaker N (m/f/?)`), lean on them: in a
+**cross-gender cast** the tag pins a line to the matching person — one woman in the room ⇒
+every `(f)` line is hers — which collapses the most common confusion (her lines sliding onto
+a male peer). Crucially the tag is judged *independently of the speaker label*, so a `(f)`
+on a turn labeled as a male speaker is a **flagged slip — trust the gender over the label**.
+This is the cheapest reliable separator because perceived gender is an easier call for the
+model than fine speaker-ID. Limits: it **cannot** separate two same-gender speakers (fall
+back to timing — who was even in the room then — plus the content cues above), and short
+backchannels get shaky tags. So: request `--voice-attrs` whenever the cast is cross-gender;
+it won't help an all-same-gender room.
+
 Record it so it stays reviewable, don't silently rewrite:
 - Set the masthead **"N speakers (diarized)"** sub to the **reconciled** count, not the
   ASR's inflated one, and say what you collapsed in your summary (e.g. "ASR's 5 labels →
@@ -207,30 +265,44 @@ Pull insights into `IDEAS`. Categories, confidence, anchors, topics: see
 for bidirectional click-to-trace. Every quote is the *repaired* Romanian — quotes are
 shown Romanian-only, no English gloss (the card never translates the speaker).
 
-**Frame insights from the participant's perspective.** *(Applies when the session has a
-clear subject — a user-testing interview, the usual case here. If it's a subject-less
-format like a peer design discussion or workshop, attribute each insight to whoever
-actually voiced it instead.)* The participant (`P`) is the research subject; facilitators
-(`F`/`B`) and observers (`O`) *run* the session — their turns are usually **prompts, not
-findings**. When a facilitator asks a question or floats
-a hypothesis, the insight is the participant's *response* to it: attribute it to the
-participant (`speaker:"P"`), quote the participant's words, and title their stance — not
-the interviewer's question. The most common failure here is a card that quotes/credits
-the facilitator and states their probe as if it were the finding (e.g. "Bogdan's probe:
-should the warning be conditional?"); the real insight is what the *participant* said back.
-Only attribute an insight to `F`/`B`/`O` when it genuinely originates as their own
-decision, constraint, or statement of fact (a PM stating a plan, a team member noting how
-something works) — never for a question. A facilitator prompt may be anchored as
-*context*, but put the participant's line first so it's the primary highlight.
+**Attribute by session type** (decided at intake):
+
+*User-testing / single-subject.* Frame insights from the **participant's perspective**.
+The participant (`P`) is the research subject; facilitators (`F`/`B`) and observers (`O`)
+*run* the session — their turns are usually **prompts, not findings**. When a facilitator
+asks a question or floats a hypothesis, the insight is the participant's *response* to it:
+attribute it to the participant (`speaker:"P"`), quote the participant's words, and title
+their stance — not the interviewer's question. The most common failure is a card that
+quotes/credits the facilitator and states their probe as if it were the finding (e.g.
+"Bogdan's probe: should the warning be conditional?"); the real insight is what the
+*participant* said back. Only attribute to `F`/`B`/`O` when it genuinely originates as
+their own decision, constraint, or statement of fact — never for a question. A facilitator
+prompt may be anchored as *context*, but put the participant's line first.
+
+*Meeting / sync / workshop.* There is no privileged stance — **attribute each insight to
+whoever actually voiced it** (the right code per the roster), quote that person, and title
+*their* position. The report's job is to capture **the discussion and where it landed**,
+so:
+- **Track how topics evolve and record the conclusion, not the brainstorm.** When a point
+  shifts during the talk (a tab structure is reshaped, an approach is dropped after a
+  counter-argument), the card states where it **landed**; mention the earlier position only
+  as context for *why*. Don't write a superseded mid-discussion idea up as if it were the
+  outcome.
+- **Mark unfinished and abandoned threads as such.** A question left open is `open_question`
+  (say it wasn't resolved); an idea floated and discarded is either dropped or noted as
+  rejected — not presented as a decision.
+- **Genuine disagreement between two people** is a real `conflictsWith` pair (attribute
+  each side to its speaker), even if they later converge — note the convergence in `detail`.
 
 **Anchor the whole exchange, not just the trigger line.** A point usually spans several
-turns — prompt → answer → follow-up → elaboration. Anchor every turn that develops it
-(quoting the participant's most representative line among them), not just the first or
-most quotable one. Under-anchoring hides the supporting back-and-forth behind the card.
-Before finalizing, re-scan each card: if its `speaker` is a facilitator or its quote is a
-facilitator line, confirm the insight truly originates with them rather than being a
-misattributed participant reaction; and check the turns just before and after each anchor
-for participant lines that belong to the same idea.
+turns — proposal → pushback → answer → elaboration. Anchor every turn that develops it
+(quoting the most representative line of the attributed speaker), not just the first or
+most quotable one. Under-anchoring hides the back-and-forth behind the card. Before
+finalizing, re-scan each card: confirm the `speaker` and `quote` belong to the person the
+insight truly originates with (in user-testing, that a facilitator line isn't standing in
+for a misattributed participant reaction; in a meeting, that the quote passes the
+voice-consistency check from Phase 1b), and check the turns just before and after each
+anchor for lines by the same speaker that belong to the same idea.
 
 Also
 derive a small **controlled set of session topics** (~4–8 themes the session covered)

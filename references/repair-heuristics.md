@@ -62,6 +62,34 @@ so errors here cascade into every card.
    (`["@04:12 „nu merge ușor”", "the participant or a facilitator?"]`) so it reaches the user in
    the clarification pass; if an insight leans on that turn, mark the idea `needs:true`.
 
+### Peer meetings — when there is no facilitator/subject asymmetry
+
+Heuristic 2 (facilitator asks, participant reacts) is the strongest cue in a user test and
+**useless in a meeting/sync/workshop**: everyone proposes, pushes back, and reflects in the
+first person, so reflective and proposing turns get stapled to the wrong peer (e.g. one
+person's *"asumpția mea… it's wrong"* lands on another). Same-gender voices with similar
+speech defeat acoustic diarization, so lean on *content*:
+
+a. **Role-knowledge — who would say this?** Each person owns a domain. The PM states
+   product facts, plans, and priorities; the designer narrates the UI they built and walks
+   the prototype ("pe tab-ul ăsta", "am pus aici"); the engineer/researcher explains
+   internals and constraints (architecture, training, scores). A turn whose *content* sits
+   squarely in one person's domain is theirs, whatever the ASR label says.
+b. **Self-reference & ownership.** First-person ownership ties a turn to its owner:
+   "prototipul meu", "am făcut", "din discuția mea cu Claude", "asumpția mea". Follow the
+   thread — the person who *held* an assumption is the one who later says it was wrong.
+c. **Name-mention logic.** A speaker doesn't name themselves in the third person.
+   "L-am sunat pe Bogdan / oare mai e la birou?" ⇒ the speaker is **not** Bogdan.
+   "Mersi mult, Bogdan" ⇒ Bogdan is the *addressee*, so the speaker is someone else.
+   Two people can share a name — disambiguate by role (e.g. `Bogdan-D` / `Bogdan-R`).
+d. **Stance continuity.** Positions persist across the back-and-forth: whoever raised a
+   concern is usually still pressing it a few turns later, and whoever proposed an idea
+   defends it. A label that suddenly flips its own stance mid-thread is two people merged.
+e. **Voice-consistency re-read (do this once before extracting).** Read each speaker's
+   turns in sequence as a single monologue. Any line that breaks the persona — wrong
+   expertise, opposite stance, or addressing themselves — is a misattribution: flip it to
+   the peer it fits. This pass catches what per-turn reading misses.
+
 ## Repair-log bucket format
 
 `REPAIRS = { auto:[[orig,fix],…], confirm:[[orig,fix],…], query:[[orig,question],…] }`
