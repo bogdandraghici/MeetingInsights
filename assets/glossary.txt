@@ -131,3 +131,13 @@ generic binary model
 document classifier
 model type
 auto-label
+empty state
+system keywords
+retrain
+retest
+OCR confidence
+ML Ops
+re-embedded
+auto-promote
+positive queries
+negative queries
