@@ -77,10 +77,15 @@ provided:
    prototype; Ana — PM; Bogdan — researcher, joins ~40 min"): role/expertise is the main
    lever for fixing diarization in Phase 1b, and two people can share a name. Reflect the
    outcome in `SPK` (readable name per code) and `SESSION.participant` (the subject for
-   user-testing; the roster for a meeting). **When you invoke `transcribe-video` on a
-   recording (intake step 1), pass that roster to it via `--speakers`, and add `--voice-attrs`
-   whenever the cast is cross-gender** (it tags each line's perceived gender, pinning the
-   woman's lines to her) — prevention beats post-hoc reconciliation.
+   user-testing; the roster for a meeting). **When you invoke `transcribe-video` on a recording (intake step 1), pass that roster to
+   it via `--speakers`; add `--voice-attrs` whenever the cast is cross-gender (it tags each
+   line's perceived gender, pinning the woman's lines to her); and add `--diarize` whenever
+   the cast is same-gender-suspect — i.e. two or more speakers who may share a gender (the
+   classic two-men or Bogdan-designer/Bogdan-researcher case).** `--diarize` runs acoustic
+   (pyannote) diarization and relabels speakers by voice, which is the one thing that
+   actually separates **same-gender** speakers — exactly where `--voice-attrs` is powerless.
+   The full-strength configuration is `--speakers` + `--voice-attrs` + `--diarize`.
+   Prevention beats post-hoc reconciliation.
 
 Use the session description to extend the working vocabulary beyond `assets/glossary.txt`
 (product names, feature names, people) so Phase 1 repairs are grounded rather than
@@ -223,6 +228,21 @@ errors hide. Don't pick silently: keep your best-guess speaker but log it as a
 `needs:true` on any card that leans on it, so the user settles it in the clarification pass
 (or by audio). Flag the ambiguous ones rather than committing a coin-flip to a card.
 
+**Acoustic diarization is the strongest speaker prior when present.** If the transcript was
+produced with transcribe-video's `--diarize`, its `Speaker N` labels are acoustic voice
+clusters — they separate **same-gender** speakers, which neither content cues nor gender
+tags can do reliably. Trust the acoustic label above the gender tag and above content/role
+cues. Two flags mark the lines that still need a human:
+- `‹reattr gemini=Sx conf=c›` — the acoustic pass moved this line off the label Gemini's
+  content-diarizer had given it. High `conf` that also agrees with the gender tag is safe to
+  accept; treat a low-`conf` reattribution as a `confirm`.
+- `‹mixed Sx/Sy›` — the turn's audio spans more than one speaker (Gemini merged two people
+  into one line). Do **not** attribute it to a single person without splitting it by
+  listening; log it `confirm`/`query` and mark dependent ideas `needs:true`.
+This supersedes the old "same-gender voices defeat acoustic diarization" assumption: with
+`--diarize` they don't. Reserve the content cues below for transcripts produced *without*
+`--diarize`, and for resolving the flagged lines.
+
 **Don't trust a re-transcription to settle same-voice peer lines** (tested). Re-running
 `transcribe-video` on a stretch — even with `--speakers` — reliably fixes *phantom
 speakers* and *role-clear* turns, but for two similar voices (e.g. two men) it is
@@ -232,6 +252,8 @@ it only where it agrees with a **content anchor** (an English line being read fr
 person's chat, UI narration, a name mention) or where two runs + the content all converge;
 otherwise leave the line flagged and let the **person who was in the room** settle it via
 the Phase 3 review (`Send to Claude ↑`). Audio you *listen to* still beats re-transcribing.
+ (Acoustic `--diarize` is different — it *does* settle same-voice lines; this caveat is
+about re-running Gemini's content-based diarization, not the pyannote pass.)
 
 **Use voice-gender tags as a strong prior when present.** If the transcript carries per-line
 gender tags (transcribe-video's `--voice-attrs` → `Speaker N (m/f/?)`), lean on them: in a
