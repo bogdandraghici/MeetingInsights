@@ -67,8 +67,11 @@ so errors here cascade into every card.
 Heuristic 2 (facilitator asks, participant reacts) is the strongest cue in a user test and
 **useless in a meeting/sync/workshop**: everyone proposes, pushes back, and reflects in the
 first person, so reflective and proposing turns get stapled to the wrong peer (e.g. one
-person's *"asumpția mea… it's wrong"* lands on another). Same-gender voices with similar
-speech defeat acoustic diarization, so lean on *content*:
+person's *"asumpția mea… it's wrong"* lands on another).
+For same-gender voices, the robust separator is transcribe-video's `--diarize` (pyannote
+acoustic clustering) — its `Speaker N` labels are voice clusters and are the **strongest**
+cue, above everything below. When the transcript was **not** produced with `--diarize`, or
+to resolve its `‹reattr…›`/`‹mixed…›` flags, lean on *content*:
 
 a. **Role-knowledge — who would say this?** Each person owns a domain. The PM states
    product facts, plans, and priorities; the designer narrates the UI they built and walks
@@ -89,6 +92,11 @@ e. **Voice-consistency re-read (do this once before extracting).** Read each spe
    turns in sequence as a single monologue. Any line that breaks the persona — wrong
    expertise, opposite stance, or addressing themselves — is a misattribution: flip it to
    the peer it fits. This pass catches what per-turn reading misses.
+f. **Acoustic labels win (when present).** If lines carry pyannote `Speaker N` labels
+   (transcribe-video `--diarize`), they separate same-gender speakers acoustically — trust
+   them over a–e. The only lines to re-examine are the flagged ones: `‹reattr gemini=Sx
+   conf=c›` (accept when `conf` is high and the gender tag agrees; otherwise `confirm`) and
+   `‹mixed Sx/Sy›` (the turn merged two voices — split by listening before attributing).
 
 ## Repair-log bucket format
 
