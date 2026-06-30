@@ -101,6 +101,22 @@
   .turn.anchored .spk::after{content:"•";color:var(--green);margin-left:6px}
   .unsure{background:#F4E6C4;border-bottom:1px dashed var(--amber);padding:0 2px;border-radius:2px;cursor:help}
 
+  /* collapsible session summary (top of the Ideas tab) */
+  .summary{border:1px solid var(--rule);border-radius:12px;background:#fff;margin:0 0 18px;
+    box-shadow:0 1px 2px rgba(33,31,27,.05),0 10px 24px -18px rgba(33,31,27,.22)}
+  .summary>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;
+    padding:13px 16px;font-weight:600;font-size:14px;color:var(--ink);user-select:none}
+  .summary>summary::-webkit-details-marker{display:none}
+  .summary>summary .chev{color:var(--ink-soft);font-size:11px;transition:transform .15s}
+  .summary[open]>summary .chev{transform:rotate(90deg)}
+  .sum-body{padding:2px 16px 16px;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px 26px}
+  .sum-sec h4{margin:0 0 7px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;
+    display:flex;align-items:center;gap:7px}
+  .sum-sec h4::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor;flex:none}
+  .sum-sec.strengths h4{color:var(--green)} .sum-sec.weaknesses h4{color:var(--mark)}
+  .sum-sec.points h4{color:var(--ink-soft)}
+  .sum-sec ul{margin:0;padding-left:17px}
+  .sum-sec li{font-size:13.5px;line-height:1.5;margin-bottom:5px;color:var(--ink-soft)}
   .toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-height:56px;padding:8px 2px;background:var(--paper);border-bottom:1px solid var(--rule);margin-bottom:14px;position:sticky;top:0;z-index:5}
   .toolbar .count{font-weight:600} .toolbar .count em{color:var(--green);font-style:normal}
   .tb-break{flex-basis:100%;height:0;margin:0}
@@ -274,6 +290,10 @@
   </header>
 
   <section id="view-ideas">
+    <details class="summary" id="summaryBox">
+      <summary><span class="chev">▶</span><span id="sum-cap">Session summary</span></summary>
+      <div class="sum-body" id="sum-body"></div>
+    </details>
     <div class="panes">
       <div class="scriptcol">
         <div class="scripthead">Repaired transcript</div>
@@ -606,6 +626,36 @@ const TOPICS_RO = {
   "Replace vs append":"Replace vs append"
 };
 
+// Collapsed session summary shown atop the Ideas tab. A list of sections; each `kind`
+// (strengths | weaknesses | points) gets a fixed bilingual label from the template.
+// User-testing → strengths vs weaknesses; meeting → a single `points` list. Empty → hidden.
+const SUMMARY = [
+  {kind:"strengths",
+   items:[
+     "Export lives where users expect it — Cristi found the entry point and confirmed it matched his mental model.",
+     "The breaking-changes section's purpose landed: it reads as attention triage, with the highest-risk items on top.",
+     "Replace-as-default was strongly validated with real cases (a bank's product DB, the Kiwi chatbot DBs).",
+     "Quick agreement on the “delete content” relabel."],
+   items_ro:[
+     "Exportul e unde se așteaptă utilizatorii — Cristi a găsit punctul de intrare și a confirmat că se potrivește cu modelul lui mental.",
+     "Scopul secțiunii de breaking-changes a fost înțeles: e citită ca triere a atenției, cu elementele cu risc mare sus.",
+     "Replace-ca-implicit a fost validat puternic cu cazuri reale (baza de produse a unei bănci, bazele chatbot-ului Kiwi).",
+     "Acord rapid pe redenumirea „delete content”."]},
+  {kind:"weaknesses",
+   items:[
+     "Import targets any KB with no link back to the source — this blocked Cristi.",
+     "“View Details” showed only name + description; he expected the KB configuration.",
+     "“used by builds” felt irrelevant for a sandbox→production content move.",
+     "Validating where removed content is actually used is a hard, manual process.",
+     "Labels need work: “Delete” is ambiguous and ORIGIN “local” is unclear."],
+   items_ro:[
+     "Importul țintește orice KB, fără legătură cu sursa — asta l-a blocat pe Cristi.",
+     "„View Details” arăta doar nume + descriere; el aștepta configurarea KB-ului.",
+     "„used by builds” a părut irelevant pentru o mutare de conținut sandbox→producție.",
+     "Validarea locului unde e folosit conținutul șters e un proces greu, manual.",
+     "Etichetele au nevoie de lucru: „Delete” e ambiguu, iar ORIGIN „local” e neclar."]}
+];
+
 const REPAIRS = {
   auto:[
     ["oladgebase · nowligebase · nowladge base · nalgbate · cab · ca be · cub · cube","Knowledge Base / KB"],
@@ -668,6 +718,20 @@ function confLabel(c){return (lang==='ro'&&CONF_RO[c])?CONF_RO[c]:c;}
 function langKey(base){return lang==='ro'?base+'_ro':base;}
 function catOptLabel(c){return c==='all'?(lang==='ro'?'Toate categoriile':'All categories'):catLabel(c);}
 function topicOptLabel(t){return t==='all'?(lang==='ro'?'Toate subiectele':'All topics'):localizeTopic(t);}
+// Session-summary section labels (keyed by kind) + caption — fixed, bilingual.
+const SUM_LABELS={strengths:{en:"Strengths",ro:"Puncte forte"},weaknesses:{en:"Weak points",ro:"Puncte slabe"},points:{en:"Key points",ro:"Puncte principale"}};
+const SUM_CAP={en:"Session summary",ro:"Rezumatul sesiunii"};
+function sumLabel(kind){const l=SUM_LABELS[kind];return l?(lang==='ro'?l.ro:l.en):kind;}
+function sumItems(sec){return (lang==='ro'&&sec.items_ro&&sec.items_ro.length)?sec.items_ro:(sec.items||[]);}
+function renderSummary(){
+  const box=document.getElementById('summaryBox');if(!box)return;
+  const secs=(typeof SUMMARY!=='undefined'?SUMMARY:[]).filter(s=>s&&(s.items||[]).length);
+  if(!secs.length){box.style.display='none';return;}
+  box.style.display='';
+  document.getElementById('sum-cap').textContent=lang==='ro'?SUM_CAP.ro:SUM_CAP.en;
+  document.getElementById('sum-body').innerHTML=secs.map(s=>
+    `<div class="sum-sec ${s.kind}"><h4>${esc(sumLabel(s.kind))}</h4><ul>${sumItems(s).map(it=>`<li>${esc(it)}</li>`).join('')}</ul></div>`).join('');
+}
 function applyMastLang(){
   document.querySelectorAll('[data-ro]').forEach(el=>{
     if(el.dataset.en==null)el.dataset.en=el.innerHTML;
@@ -680,6 +744,7 @@ function setLang(l){
   document.getElementById('lang-ro').setAttribute('aria-pressed',lang==='ro');
   document.documentElement.lang=lang;
   applyMastLang();
+  renderSummary();
   // relabel filter dropdowns — values are unchanged, so the active filter is preserved
   sel.querySelectorAll('option').forEach(o=>o.textContent=catOptLabel(o.value));
   topicSel.querySelectorAll('option').forEach(o=>o.textContent=topicOptLabel(o.value));

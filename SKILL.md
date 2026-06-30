@@ -111,8 +111,8 @@ three-bucket repair log silently regress.
 The regions you may change:
 
 1. **The data block** in `<script>` — replace `TURNS`, `IDEAS`, `REPAIRS`, `SPK`,
-   `SESSION`, and `TOPICS_RO` (and `FRAMES`, if frames are extracted). Schema is in
-   `references/idea-schema.md`. `SESSION` carries the provenance (id slug, feature, date,
+   `SESSION`, `TOPICS_RO`, and `SUMMARY` (and `FRAMES`, if frames are extracted). Schema is
+   in `references/idea-schema.md`. `SESSION` carries the provenance (id slug, feature, date,
    participant) that the JSON export flattens onto every insight so it survives pooling.
    Each idea carries `title_ro`/`detail_ro` and `TOPICS_RO` maps each topic to its Romanian
    label — these feed the **EN/RO toggle** (analysis only; see Phase 2 and idea-schema).
@@ -130,7 +130,8 @@ The regions you may change:
 Everything else — the three pill tabs (Ideas + transcript / Repair log / How this
 works), the sticky transcript pane, card structure, the glossary-cluster repair log, the
 category **and topic** filters, the **EN/RO language toggle** and its localization layer
-(`setLang`, `disp`, `CAT_RO`/`CONF_RO`, the `data-ro` swap), export panel, footer,
+(`setLang`, `disp`, `CAT_RO`/`CONF_RO`, the `data-ro` swap), the **collapsible session
+summary** box and its `renderSummary`/`SUM_LABELS` machinery, export panel, footer,
 responsive rules — is part of the template and stays. Also protected now: the **review round-trip** machinery — the hover action
 buttons on cards/repairs/turns/masthead (`✎ Edit` / `💬 Comment`), the
 in-place edit fields (revertible — `↺ Revert` in edit mode, or the clickable
@@ -349,6 +350,15 @@ the repair-view note with `data-ro="…"` Romanian renderings (see the editable 
 `references/idea-schema.md`). Category and confidence labels are translated by fixed
 template constants — don't emit those. Quotes are **never** translated; they stay verbatim
 repaired Romanian on both languages.
+
+**Write the `SUMMARY` recap.** Produce a short, scannable bullet summary (the collapsible
+box atop the Ideas tab) that distils the session's main points — a handful of one-line
+bullets per section, not a paragraph. Shape it **by session type**: for **user-testing**,
+split it into `strengths` vs `weaknesses` (what worked / landed well vs the pain points and
+confusion); for a **meeting / workshop**, use a single `points` section (key points and
+where the discussion landed). It's a derived recap of the cards — keep it consistent with
+them, and give every bullet an `items_ro` Romanian counterpart for the toggle. Section
+headings come from the template (don't write them). See `references/idea-schema.md`.
 When two insights genuinely contradict each other (same subject, opposing stance), link
 them **bidirectionally** via `conflictsWith:[id]` — the card shows a `⚡ In tension with`
 jump link and a **⚡ Conflicts** toggle filters to them. Only link real contradictions,

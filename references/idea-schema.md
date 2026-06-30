@@ -78,6 +78,25 @@ regenerate the counterpart translation so EN and RO stay in sync. Quotes always 
 edits the canonical EN `topics` list (the filter keys), so add a `TOPICS_RO` entry for any
 newly-added topic.
 
+## SUMMARY — collapsed session summary (top of the Ideas tab)
+A short, scannable bullet recap shown in a `<details>` box above the insight cards
+(collapsed by default). A list of sections; each section's `kind` picks a fixed bilingual
+heading from the template (`SUM_LABELS`), and the items are succinct one-line bullets.
+```
+const SUMMARY = [
+  { kind:"strengths",  items:["…", "…"], items_ro:["…", "…"] },
+  { kind:"weaknesses", items:["…"],       items_ro:["…"] }
+];
+```
+- `kind`: `strengths` (green) · `weaknesses` (red) · `points` (neutral). Headings come from
+  the template — don't emit them.
+- **User-testing** → two sections, `strengths` vs `weaknesses` (the weak/strong split).
+- **Meeting / workshop** → a single `points` section (key points + where things landed).
+- `items` is English; `items_ro` is the Romanian for the EN/RO toggle (falls back to
+  `items` when absent). Keep bullets short — one line each, a handful per section.
+- Empty or absent `SUMMARY` → the box isn't rendered. It is **not** exported and **not**
+  part of the review packet — it's a derived recap of the cards, regenerate it on rebuild.
+
 ## REPAIRS — `{ auto:[[o,f]], confirm:[[o,f]], query:[[o,question]] }`
 See references/repair-heuristics.md. Cluster ASR spellings; `"__DROP__"` to drop.
 
