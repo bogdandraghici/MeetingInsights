@@ -110,20 +110,28 @@ three-bucket repair log silently regress.
 
 The regions you may change:
 
-1. **The data block** in `<script>` — replace `TURNS`, `IDEAS`, `REPAIRS`, `SPK`, and
-   `SESSION` (and `FRAMES`, if frames are extracted). Schema is in
+1. **The data block** in `<script>` — replace `TURNS`, `IDEAS`, `REPAIRS`, `SPK`,
+   `SESSION`, and `TOPICS_RO` (and `FRAMES`, if frames are extracted). Schema is in
    `references/idea-schema.md`. `SESSION` carries the provenance (id slug, feature, date,
    participant) that the JSON export flattens onto every insight so it survives pooling.
+   Each idea carries `title_ro`/`detail_ro` and `TOPICS_RO` maps each topic to its Romanian
+   label — these feed the **EN/RO toggle** (analysis only; see Phase 2 and idea-schema).
+   `CAT_RO`/`CONF_RO` (category & confidence labels) are fixed template constants — leave them.
 2. **The masthead** `<header class="mast">…</header>` — title, sub, eyebrow, speaker
    legend, and the four metric counters (leave the counter IDs untouched; JS fills them).
+   Give the eyebrow / title / sub / each legend `<i>`’s inner `<span>` a `data-ro="…"`
+   attribute with the Romanian rendering so the toggle can switch them (leave the
+   `langtoggle` control and counter IDs alone).
 3. **The note box** inside `<section id="view-rep">` — the "resolved by the audio"
    summary, rewritten for this session (or repurposed, e.g. to summarise frame
-   resolution). If nothing was resolved, keep it short and factual.
+   resolution). If nothing was resolved, keep it short and factual. Give it a `data-ro="…"`
+   (HTML allowed; entity-encode `<`/`>`) so it switches with the toggle.
 
 Everything else — the three pill tabs (Ideas + transcript / Repair log / How this
 works), the sticky transcript pane, card structure, the glossary-cluster repair log, the
-category **and topic** filters, export panel, footer, responsive rules — is part of the
-template and stays. Also protected now: the **review round-trip** machinery — the hover action
+category **and topic** filters, the **EN/RO language toggle** and its localization layer
+(`setLang`, `disp`, `CAT_RO`/`CONF_RO`, the `data-ro` swap), export panel, footer,
+responsive rules — is part of the template and stays. Also protected now: the **review round-trip** machinery — the hover action
 buttons on cards/repairs/turns/masthead (`✎ Edit` / `💬 Comment`), the
 in-place edit fields (revertible — `↺ Revert` in edit mode, or the clickable
 `edited ✕` flag, discards the edit and restores the original), the comment boxes (each
@@ -331,6 +339,16 @@ derive a small **controlled set of session topics** (~4–8 themes the session c
 and tag each idea with one or more via `topics:[…]`, reusing the exact same label
 strings across ideas so the topic-filter dropdown groups them. Set `needs:true` + `q`
 only for ideas riding on an uncertain repair (these feed the "open queries" metric).
+
+**Produce the Romanian analysis for the EN/RO toggle.** The report has an `EN | RO` switch
+that flips **the analysis** to Romanian (UI chrome and quotes stay as they are). So for
+every idea also emit `title_ro` and `detail_ro` (the Romanian of the headline and detail —
+natural Romanian, keeping English domain terms as spoken, same as quotes), and emit a
+`TOPICS_RO` map giving each topic label its Romanian display string. Write the masthead and
+the repair-view note with `data-ro="…"` Romanian renderings (see the editable regions and
+`references/idea-schema.md`). Category and confidence labels are translated by fixed
+template constants — don't emit those. Quotes are **never** translated; they stay verbatim
+repaired Romanian on both languages.
 When two insights genuinely contradict each other (same subject, opposing stance), link
 them **bidirectionally** via `conflictsWith:[id]` — the card shows a `⚡ In tension with`
 jump link and a **⚡ Conflicts** toggle filters to them. Only link real contradictions,
@@ -450,7 +468,10 @@ Claude ↑`** in the report and paste the packet (JSON or Markdown), then procee
    (just `{session}`) means no changes: say so and leave the report as-is.
 2. Apply it onto the working data:
    - `cards[].edits` — overwrite those exact fields on the matching `IDEAS` entry
-     (`title`, `detail`, `quote`, `category`, `confidence`, `topics`).
+     (`title`, `detail`, `quote`, `category`, `confidence`, `topics`). A `title_ro` /
+     `detail_ro` key means the user edited that card **while viewing Romanian** — apply it
+     to the RO field and **regenerate the English counterpart** (and vice-versa) so the two
+     languages stay in sync.
    - `cards[].excluded:true` — the user unchecked that card; drop the idea entirely.
    - `cards[].note`, `report_note` — treat as instructions; they may direct merges,
      re-scoping, re-attribution, or wording the raw field edits can't express.
