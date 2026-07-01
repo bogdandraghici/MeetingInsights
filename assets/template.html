@@ -151,6 +151,12 @@
   .quote{border-left:3px solid var(--rule);padding:7px 0 7px 13px;margin:0 0 4px;font-style:italic;color:#3a372f;font-size:14px;line-height:1.5}
   .topics{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
   .topic{font-size:10.5px;color:var(--ink-soft);border:1px solid var(--rule);border-radius:999px;padding:2px 9px;white-space:nowrap}
+  .framewrap{margin-top:10px}
+  .framebtn{font:inherit;font-size:11px;color:var(--ink-soft);background:#faf9f7;border:1px solid var(--rule);border-radius:7px;padding:3px 9px;cursor:pointer;letter-spacing:.02em}
+  .framebtn:hover{border-color:var(--ink-soft);color:var(--ink)}
+  figure.frame{margin:9px 0 0}
+  figure.frame img{display:block;max-width:100%;border:1px solid var(--rule);border-radius:9px}
+  figure.frame figcaption{font-size:11px;color:var(--ink-soft);margin-top:5px}
   .who{font-size:11px;color:var(--ink-soft);margin-top:7px;letter-spacing:.04em}
   .tension{display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin-top:9px;padding-top:9px;border-top:1px dashed var(--rule)}
   .tension .tlabel{font-size:11px;font-weight:700;letter-spacing:.04em;color:var(--mark);white-space:nowrap}
@@ -704,6 +710,10 @@ const SPK={P:"Cristi",F:"Facil.",B:"Bogdan",O:"Obs."};
 // self-describing in a cross-session pool. `id` (slug <feature>-<date>) is the namespace.
 const SESSION={id:"kb-export-2026-06-17",feature:"Knowledge Base export/import",date:"2026-06-17",participant:"Cristi"};
 
+// Screen-context frames — base64 JPEG keyed by idea id; ideas with frame:true render a
+// "⌖ view frame" toggle. Empty by default; filled per session when a recording is on disk.
+const FRAMES = {};
+
 // ---- Language (EN/RO) — switches the ANALYSIS only (card title/detail/topics,
 // category & confidence labels, masthead, note box). Quotes, speaker names, and all
 // UI chrome stay English. RO falls back to EN wherever a *_ro value is absent. ----
@@ -779,6 +789,7 @@ function cardHTML(it){
   const nturns=it.anchors.length>1?`<span class="srcn"> · ${it.anchors.length} lines</span>`:'';
   const topics=(it.topics&&it.topics.length)?`<div class="topics">${it.topics.map(t=>`<span class="topic">${esc(localizeTopic(t))}</span>`).join('')}</div>`:'';
   const tension=(it.conflictsWith&&it.conflictsWith.length)?`<div class="tension"><span class="tlabel">⚡ In tension with</span>${it.conflictsWith.map(cid=>`<button class="tlink" onclick="event.stopPropagation();locate('${cid}',true)">${titleOf(cid)}</button>`).join('')}</div>`:'';
+  const frame=(it.frame&&typeof FRAMES!=='undefined'&&FRAMES[it.id])?`<div class="framewrap"><button class="framebtn" onclick="event.stopPropagation();toggleFrame('${it.id}',this)">⌖ hide frame</button><figure class="frame" id="fr-${it.id}"><img loading="lazy" src="${FRAMES[it.id]}" alt="screen at ${src}"><figcaption>Screen at ${src}</figcaption></figure></div>`:'';
   return `<input type="checkbox" class="keep"${kept.has(it.id)?' checked':''} onchange="toggle('${it.id}',this.checked)" onclick="event.stopPropagation()" aria-label="keep">
     <div>
       <div class="tagrow">
@@ -793,8 +804,10 @@ function cardHTML(it){
       ${q}
       ${tension}
       ${topics}
+      ${frame}
     </div>`;
 }
+function toggleFrame(id,btn){const f=document.getElementById('fr-'+id);const nowHidden=f.classList.toggle('hidden');btn.textContent=nowHidden?'⌖ view frame':'⌖ hide frame';}
 // every id involved in a conflict (own links + cards others link to), for the filter
 const conflictIds=new Set();
 IDEAS.forEach(it=>(it.conflictsWith||[]).forEach(cid=>{conflictIds.add(it.id);conflictIds.add(cid);}));

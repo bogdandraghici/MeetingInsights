@@ -111,7 +111,8 @@ three-bucket repair log silently regress.
 The regions you may change:
 
 1. **The data block** in `<script>` — replace `TURNS`, `IDEAS`, `REPAIRS`, `SPK`,
-   `SESSION`, `TOPICS_RO`, and `SUMMARY` (and `FRAMES`, if frames are extracted). Schema is
+   `SESSION`, `TOPICS_RO`, and `SUMMARY` (and `FRAMES` — standard whenever a recording is
+   on disk; see "Screen context (frames)"). Schema is
    in `references/idea-schema.md`. `SESSION` carries the provenance (id slug, feature, date,
    participant) that the JSON export flattens onto every insight so it survives pooling.
    Each idea carries `title_ro`/`detail_ro` and `TOPICS_RO` maps each topic to its Romanian
@@ -364,27 +365,48 @@ them **bidirectionally** via `conflictsWith:[id]` — the card shows a `⚡ In t
 jump link and a **⚡ Conflicts** toggle filters to them. Only link real contradictions,
 not merely related points; true within-session conflicts are uncommon.
 
-## Optional — Screen context (frames)
+## Screen context (frames) — always, when the recording is on disk
 
-Sessions reference on-screen things the transcript can't resolve ("zona asta", "iconițele",
-"cele 3 puncte"). If the recording is **on disk** (a real upload, not a Drive link —
-`download_file_content` returns base64 into context and cannot handle a video), extract a
-still at each screen-dependent insight's timestamp:
+Sessions constantly reference on-screen things the transcript can't resolve ("zona asta",
+"iconițele", "cele 3 puncte", a button, a table, a chart). **Whenever the recording is a
+real file on disk** (not a Drive/cloud link — `download_file_content` returns base64 into
+context and cannot handle a video), embedding frames is a **standard step, not optional** —
+do it on every build without being asked. `FRAMES` rendering is built into
+`assets/template.html` — a frame shows **inline on the card by default**, with a
+`⌖ hide frame` toggle to collapse it — so it costs nothing to populate and makes every
+screen-dependent insight self-explanatory. Skip it **only** when there is genuinely no
+recording on disk.
 
-```
-"${CLAUDE_SKILL_DIR}/assets/extract-frames.sh" VIDEO MANIFEST OUTDIR [scale_w]   # MANIFEST: id|HH:MM:SS|label
-```
+Process:
 
-Base64-embed each frame into `FRAMES` keyed by idea id, set `frame:true` on those ideas,
-and the template renders an inline "⌖ view frame" toggle on the card. This is the only
-sanctioned *addition* to the template, because it's purely additive and styled to match.
+1. **Pick the screen-dependent insights** — any card whose point is about something visible
+   (a screen, table, chart, modal, label, button, layout). Most user-testing cards qualify;
+   pure attitudinal/mental-model cards may not. Use each idea's **primary anchor timestamp**,
+   nudged a few seconds to a moment when the screen is *stable* (just after a navigation, not
+   mid-transition).
+2. **Extract** one still per chosen insight:
+   ```
+   "${CLAUDE_SKILL_DIR}/assets/extract-frames.sh" VIDEO MANIFEST OUTDIR [scale_w]   # MANIFEST: id|HH:MM:SS|label
+   ```
+   Name each manifest `id` exactly the idea id (`idea-08`), so `id_HHMMSS.jpg` maps straight
+   back. `scale_w` ~1000–1200 keeps the base64 reasonable.
+3. **Verify before embedding — prototypes break.** Tile the stills into one contact sheet and
+   look at it (the script makes one if ImageMagick's `montage` is present; otherwise build it
+   with ffmpeg, e.g. `ffmpeg -framerate 1 -pattern_type glob -i 'OUTDIR/*.jpg' -frames:v 1 -vf
+   "scale=420:-1,tile=3xN:padding=6:color=0x1c2024" sheet.jpg`). **Drop any frame that caught a
+   blank/loading/error screen or a broken build** and either re-extract at a nearby stable
+   timestamp or skip that card. A frame that shows nothing is worse than no frame.
+4. **Embed**: base64 each surviving still into `FRAMES` keyed by idea id, and set `frame:true`
+   on those ideas. The build script reads the frame dir, encodes, and `re.sub`s the template's
+   default `const FRAMES = {};`. Validate that every `FRAMES` key matches a real idea id.
 
 ## Optional — Publish to the sessions site
 
 When the user wants to **share** a built report or collect sessions in one browsable
 place ("publish this", "upload it to the Testing repo", "put it on the sessions site"),
 publish the HTML to the GitHub repo `bogdandraghici/Testing` (served via GitHub Pages).
-This is an **explicit opt-in step — never automatic** (like frames). It requires an
+This is an **explicit opt-in step — never automatic** (unlike frames, which are standard).
+It requires an
 authenticated `gh` CLI; if `gh auth status` fails, tell the user to run `gh auth login`.
 
 ```
@@ -426,7 +448,12 @@ schema and mechanics.
 2. Write a short Python transform that: builds `TURNS/IDEAS/REPAIRS/SPK/FRAMES` as data,
    `json.dumps` them, and does targeted `re.sub`/`str.replace` on the three regions only.
    (`json.dumps(..., ensure_ascii=False)` is valid JS and safely escapes the HTML in
-   transcript text.)
+   transcript text.) **Keep the `const IDEAS = [ … \n];` block ending with a newline before
+   the closing `]` and the `const SESSION={…};` form intact** — `scripts/publish.py` parses
+   the report by those exact terminators (`const IDEAS = (\[.*?\n\]);`,
+   `const SESSION=(\{.*?\});`). A single-line `json.dumps` of IDEAS (ending `}];` with no
+   newline) will publish-fail with "could not find SESSION / IDEAS data blocks"; emit
+   `js(IDEAS)[:-1] + "\n];"` so the terminator survives.
 3. Validate before delivering: each data block must `json.loads`; the card render still
    has its `${topics}` interpolation; no leftover content from the template's worked example.
 

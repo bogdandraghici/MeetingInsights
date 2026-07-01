@@ -141,3 +141,33 @@ re-embedded
 auto-promote
 positive queries
 negative queries
+agentic platform
+AI-native
+use case
+POC
+ROI
+business case
+pilot
+account executive
+actuariat
+actuarial
+underwriting
+UW
+claims
+claim file
+Qualitance
+Eurolife
+Fairfax
+FFH
+Fathom
+end-to-end
+traceability
+audit
+governance
+document intelligence
+promote to main
+compare with
+loan
+text document
+train/test split
+batch
